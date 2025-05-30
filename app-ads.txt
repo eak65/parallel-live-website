@@ -1,3 +1,4 @@
 facebook.com, 181545763017393, DIRECT, c3e20eee3f780d68
 smartadserver.com, 4194-OB, RESELLER, 060d053dcf45cbf3
 smartadserver.com, 4194, RESELLER, 060d053dcf45cbf3
+google.com, pub-9242738457844975, DIRECT, f08c47fec0942fa0
