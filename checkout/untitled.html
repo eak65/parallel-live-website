@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Subscribe</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body { font-family: -apple-system, system-ui; margin: 0; padding: 16px; background:#0b0b0b; color:#fff; }
+    #wrap { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 8px; }
+    p  { opacity: .75; margin: 0 0 16px; }
+    #apple { margin: 20px 0; }
+    #or { text-align: center; opacity: .6; margin: 18px 0; }
+    #card { margin-top: 8px; }
+    button.action { width: 100%; padding: 14px; font-size: 17px; border-radius: 12px; border: 0; }
+    #msg { margin-top: 16px; min-height: 20px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+<div id="wrap">
+  <h1>Pro Access</h1>
+  <p>Fast, secure checkout. Apple Pay when available.</p>
+
+  <div id="apple"></div>
+  <div id="or" class="hidden">or pay with card</div>
+
+  <div id="card" class="hidden">
+    <div id="card-element"></div>
+    <button id="card-pay" class="action">Pay</button>
+  </div>
+
+  <div id="msg"></div>
+</div>
+
+<script>
+(async () => {
+  // ==== CONFIG (edit these) ==========================================
+  const PUBLISHABLE_KEY     = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";   // your Stripe publishable key
+  const CREATE_SUB_URL      = "https://YOUR-LAMBDA/create-subscription"; // your existing Lambda that takes paymentMethodId, userId, email, sub_type, isDiscounted
+  const SUCCESS_RETURN_URL  = "https://yourdomain.com/checkout_redirect/success"; // your Universal Link success URL
+  // ===================================================================
+
+  // Read params passed from the app
+  const url          = new URL(window.location.href);
+  const userId       = url.searchParams.get("userId") || "";
+  const sub_type     = url.searchParams.get("sub_type") || "weekly";     // "weekly" | "annual"
+  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
+  const emailParam   = url.searchParams.get("email") || "";
+
+  const stripe = Stripe(PUBLISHABLE_KEY);
+  const elements = stripe.elements();
+  const msg = (t) => (document.querySelector("#msg").textContent = t || "");
+
+  // ---------- Helper: POST to your Lambda to create the subscription ----------
+  async function callCreateSubscription(paymentMethodId, emailFromApplePay) {
+    const payload = {
+      paymentMethodId,
+      userId,
+      email: emailFromApplePay || emailParam || "",
+      sub_type,
+      isDiscounted
+    };
+
+    const res = await fetch(CREATE_SUB_URL, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload)
+    });
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.error) {
+      throw new Error(json.error || `Server error (${res.status})`);
+    }
+    return json; // expect { subscriptionId: "sub_..." } from your Lambda
+  }
+
+  // ===================== APPLE PAY via Payment Request ========================
+  const pr = stripe.paymentRequest({
+    country: "US",             // adjust if needed
+    currency: "usd",
+    total: { label: "Pro Access", amount: 0 }, // amount isn't used for subscriptions here
+    requestPayerEmail: true
+  });
+
+  const canPay = await pr.canMakePayment();
+
+  if (canPay && (canPay.applePay || canPay.applePay === true)) {
+    const prButton = elements.create("paymentRequestButton", {
+      paymentRequest: pr,
+      style: { paymentRequestButton: { type: "applePay" } }
+    });
+    prButton.mount("#apple");
+
+    // IMPORTANT: This fires on *tap* (user gesture ✅)
+    pr.on("paymentmethod", async (ev) => {
+      try {
+        msg("Processing…");
+        // Use the Apple Pay-provisioned PaymentMethod ID directly with your existing server
+        const result = await callCreateSubscription(ev.paymentMethod.id, ev.payerEmail);
+        // Tell Apple Pay the payment method was accepted at this stage (we'll handle next steps server-side)
+        ev.complete("success");
+        // Bounce back to the app (Universal Link)
+        const redirect = new URL(SUCCESS_RETURN_URL);
+        redirect.searchParams.set("userId", userId);
+        redirect.searchParams.set("sub_type", sub_type);
+        redirect.searchParams.set("sid", result.subscriptionId || "");
+        window.location.href = redirect.toString();
+      } catch (e) {
+        console.error(e);
+        msg(e.message);
+        ev.complete("fail");
+      }
+    });
+  } else {
+    // Apple Pay not available -> show card fallback
+    document.querySelector("#or").classList.add("hidden");
+    document.querySelector("#apple").classList.add("hidden");
+    document.querySelector("#card").classList.remove("hidden");
+  }
+
+  // ============================ CARD FALLBACK ================================
+  const cardElement = elements.create("card", { hidePostalCode: false });
+  cardElement.mount("#card-element");
+  document.querySelector("#card").classList.remove("hidden");
+  document.querySelector("#or").classList.remove("hidden");
+
+  document.querySelector("#card-pay").addEventListener("click", async () => {
+    msg("");
+    // Create a PaymentMethod the same way your native flow did, then call your Lambda
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: "card",
+      card: cardElement,
+      billing_details: { email: emailParam || undefined }
+    });
+    if (error) {
+      msg(error.message);
+      return;
+    }
+
+    try {
+      msg("Processing…");
+      const result = await callCreateSubscription(paymentMethod.id, emailParam);
+      const redirect = new URL(SUCCESS_RETURN_URL);
+      redirect.searchParams.set("userId", userId);
+      redirect.searchParams.set("sub_type", sub_type);
+      redirect.searchParams.set("sid", result.subscriptionId || "");
+      window.location.href = redirect.toString();
+    } catch (e) {
+      console.error(e);
+      msg(e.message);
+    }
+  });
+})();
+</script>
+</body>
+</html>
