@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v24</title>
+  <title>Start Free Trial — v25</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -178,7 +178,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v24</div>
+<div id="ver">v25</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -293,28 +293,36 @@
         console.log("Creating SetupIntent...");
         showStatus("Creating payment session...", "info");
         
-        const setupResponse = await fetch(SETUP_INTENT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
-        });
+        try {
+          const setupResponse = await fetch(SETUP_INTENT_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId })
+          });
 
-        console.log("Setup Intent response status:", setupResponse.status);
+          console.log("Setup Intent response status:", setupResponse.status);
+          console.log("Setup Intent response headers:", setupResponse.headers);
 
-        if (!setupResponse.ok) {
-          throw new Error(`Setup failed: ${setupResponse.status}`);
+          if (!setupResponse.ok) {
+            const errorText = await setupResponse.text();
+            console.error("Setup Intent error response:", errorText);
+            throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
+          }
+
+          const setupJson = await setupResponse.json();
+          console.log("Setup Intent response:", setupJson);
+          
+          clientSecret = setupJson.clientSecret;
+          
+          if (!clientSecret) {
+            throw new Error("No client secret received");
+          }
+          
+          console.log("Got client secret:", clientSecret.substring(0, 20) + "...");
+        } catch (fetchError) {
+          console.error("Setup Intent fetch error:", fetchError);
+          throw new Error(`Failed to create payment session: ${fetchError.message}`);
         }
-
-        const setupJson = await setupResponse.json();
-        console.log("Setup Intent response:", setupJson);
-        
-        clientSecret = setupJson.clientSecret;
-        
-        if (!clientSecret) {
-          throw new Error("No client secret received");
-        }
-        
-        console.log("Got client secret:", clientSecret.substring(0, 20) + "...");
       }
 
       // 2) Confirm the setup intent with the payment method
@@ -342,17 +350,27 @@
 
       console.log("Creating subscription with payload:", subscriptionPayload);
 
-      const subResponse = await fetch(CREATE_SUB_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(subscriptionPayload)
-      });
+      try {
+        const subResponse = await fetch(CREATE_SUB_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(subscriptionPayload)
+        });
 
-      const subJson = await subResponse.json();
-      console.log("Subscription response:", subJson);
-      
-      if (!subResponse.ok || subJson.error) {
-        throw new Error(subJson.error || "Subscription creation failed");
+        console.log("Subscription response status:", subResponse.status);
+        console.log("Subscription response headers:", subResponse.headers);
+
+        const subJson = await subResponse.json();
+        console.log("Subscription response:", subJson);
+        
+        if (!subResponse.ok || subJson.error) {
+          const errorText = await subResponse.text();
+          console.error("Subscription error response:", errorText);
+          throw new Error(subJson.error || `Subscription creation failed: ${subResponse.status} - ${errorText}`);
+        }
+      } catch (fetchError) {
+        console.error("Subscription fetch error:", fetchError);
+        throw new Error(`Failed to create subscription: ${fetchError.message}`);
       }
 
       // 4) Redirect to success
