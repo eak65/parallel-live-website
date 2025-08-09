@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Subscribe with Apple Pay — DEBUG v9</title>
+  <title>Subscribe with Apple Pay — DEBUG v10</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -14,35 +14,49 @@
     p  { opacity:.85; margin:0 0 18px; }
 
     /* Card */
-    .card { background:#fff; color:#000; border-radius:16px; padding:16px; margin:16px auto; max-width:540px;
-            box-shadow:0 8px 30px rgba(0,0,0,.35); }
+    .card {
+      background:#fff; color:#000; border-radius:16px;
+      padding:16px; margin:16px auto; max-width:540px;
+      box-shadow:0 8px 30px rgba(0,0,0,.35);
+    }
 
-    /* Stripe PRB container (iOS only) */
-    #apple { display:block; width:100%; max-width:520px; height:56px; margin:8px auto 0; background:#fff;
-             border:1px solid #ddd; border-radius:12px; position:relative; }
-    #apple > iframe { width:100% !important; height:100% !important; display:block !important; border-radius:12px; }
+    /* Stripe PRB container */
+    #apple{
+      display:block; width:100%; max-width:520px; height:56px;
+      margin:8px auto 0; background:#fff;
+      border:1px solid #ddd; border-radius:12px; position:relative;
+    }
+    #apple > iframe {
+      width:100% !important; height:100% !important;
+      display:block !important; border-radius:12px;
+    }
 
-    /* Fallback button */
-    #manual { margin:12px auto 0; max-width:520px; }
-    #manual button { width:100%; height:56px; border:0; border-radius:14px; background:#0af; color:#000;
-                     font-size:17px; font-weight:700; box-shadow:0 6px 20px rgba(0,0,0,.35); }
+    /* Fallback button (always shown when Apple Pay available) */
+    #manual { margin:12px auto 0; max-width:520px; display:none; }
+    #manual button {
+      width:100%; height:56px; border:0; border-radius:14px;
+      background:#0af; color:#000; font-size:17px; font-weight:700;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+    }
 
     #msg { margin-top:14px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.95; }
 
-    #version { position:fixed; top:10px; right:12px; background:rgba(0,0,0,.7); color:#0ff; padding:4px 8px;
-               font-size:12px; border-radius:6px; z-index:100001; font-weight:bold; }
+    #version {
+      position:fixed; top:10px; right:12px; background:rgba(0,0,0,.7);
+      color:#0ff; padding:4px 8px; font-size:12px; border-radius:6px; z-index:100001; font-weight:bold;
+    }
 
     .banner{ position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:100000 }
     .banner a{ color:#0af; text-decoration:underline }
   </style>
 </head>
 <body>
-<div id="version">v9</div>
+<div id="version">v10</div>
 <div id="wrap">
   <h1>Pro Access</h1>
   <p>Apple Pay only — no card fields. All logs shown below.</p>
 
-  <div class="card">
+  <div class="card" id="card">
     <div id="apple"></div>
   </div>
 
@@ -53,23 +67,24 @@
 
 <script>
 const log=(...a)=>{console.log("[AP DEBUG]",...a);const s=a.map(x=>typeof x==="object"?JSON.stringify(x,null,2):String(x)).join(" ");document.querySelector("#msg").textContent+=s+"\n";};
-const isiOS = /iP(hone|od|ad)/i.test(navigator.platform) || (/Mac/i.test(navigator.userAgent) && 'ontouchend' in document); // iPadOS reports Mac
-
+window.addEventListener("pageshow", e=>log("pageshow", { persisted:e.persisted }));
+document.addEventListener("visibilitychange", ()=>log("visibilitychange", document.visibilityState));
+window.addEventListener("orientationchange", ()=>log("orientationchange"));
 window.onerror=(m,s,l,c,e)=>log("window.onerror",m,s+":"+l,e&&e.stack?e.stack:e);
 window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reason));
 
+// Soft warning for in-app contexts
 (function(){
   const ua=navigator.userAgent;
   const isInApp=/(FBAN|FBAV|FB_IAB|Line|Instagram|GSA|Twitter|TikTok|Snap|Pinterest|DuckDuckGo)/i.test(ua);
-  const isSafariVC=/\bSFSafariViewController\b/i.test(ua);
   const notTop=(top!==self);
   const notHttps=location.protocol!=="https:";
-  if(isInApp||isSafariVC||notTop||notHttps){
+  if(isInApp||notTop||notHttps){
     const bar=document.createElement("div");
     bar.className="banner";
     bar.innerHTML='For Apple Pay, open in Safari. <a href="'+location.href+'">Open</a>';
     document.body.appendChild(bar);
-    log("Context might block Apple Pay:",{isInApp,isSafariVC,notTop,notHttps,ua});
+    log("Context might block Apple Pay:",{isInApp,notTop,notHttps,ua});
   }
 })();
 
@@ -87,7 +102,7 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
   const emailParam=url.searchParams.get("email")||"";
 
   log("host",location.host,"https",location.protocol==="https:","top-level",top===self);
-  log("UA",navigator.userAgent,"isiOS:",isiOS);
+  log("UA",navigator.userAgent);
   log("ApplePaySession exists:",!!window.ApplePaySession,"native canMakePayments:",window.ApplePaySession?.canMakePayments?.());
 
   // SetupIntent
@@ -104,51 +119,73 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
   }catch(e){ log("SetupIntent fetch error:",e.message); return; }
 
   const stripe=Stripe(PUBLISHABLE_KEY);
-  const elements=stripe.elements({clientSecret});
+  const elements=stripe.elements({ clientSecret }); // setup-mode
+
   const pr=stripe.paymentRequest({
-    country:"US", currency:"usd",
-    total:{label:"Pro Access", amount:0},
+    country:"US",
+    currency:"usd",
+    total:{ label:"Pro Access", amount:0 },
     requestPayerEmail:true
   });
 
-  let can=null; try{ can=await pr.canMakePayment(); }catch(e){ log("canMakePayment error",e.message); }
+  let can=null;
+  try{ can=await pr.canMakePayment(); }catch(e){ log("canMakePayment error",e.message); }
   log("Stripe canMakePayment →",can);
 
-  const container=document.getElementById("apple");
-  const manualBtn=document.getElementById("force");
-
-  // Prefer PRB on iOS; use fallback on macOS
-  const useStripePRB = !!(isiOS && can && (can.applePay || can.applePay===true));
-
-  if (useStripePRB) {
-    document.querySelector(".card").style.display="block";
-    document.getElementById("manual").style.display="none"; // hide fallback on iOS for clean UI
-    const prb = elements.create("paymentRequestButton", {
-      paymentRequest: pr,
-      style: { paymentRequestButton: { type:"applePay", theme:"dark", height:"48px" } }
-    });
-    prb.on("ready",()=>log("PRB ready (iOS)"));
-    try{ prb.mount("#apple"); log("PRB mounted (iOS)"); }catch(e){ log("PRB mount error",e.message); }
-  } else {
-    // macOS or unsupported context → hide PRB box, show fallback only
-    document.querySelector(".card").style.display="none";
-    document.getElementById("manual").style.display="block";
-    log("Using fallback button (no PRB painting or non-iOS).");
+  if(!(can && (can.applePay || can.applePay===true))){
+    document.getElementById("card").style.display="none";
+    log("Apple Pay unavailable in this context.");
+    return;
   }
 
-  // Common flow for both PRB and fallback
+  // ALWAYS show fallback (mobile + desktop) so the flow still works if PRB doesn't paint
+  document.getElementById("manual").style.display="block";
+
+  // Always try to mount PRB when Apple Pay available
+  const prb=elements.create("paymentRequestButton",{
+    paymentRequest:pr,
+    style:{ paymentRequestButton:{ type:"applePay", theme:"dark", height:"48px" } }
+  });
+  prb.on("ready",()=>log("PRB ready"));
+  try{
+    prb.mount("#apple");
+    log("PRB mounted");
+  }catch(e){ log("PRB mount error",e.message); }
+
+  // Diagnostics: ensure the iframe is visible
+  function diag(tag){
+    const container=document.getElementById("apple");
+    const ifr=container.querySelector("iframe");
+    const crect=container.getBoundingClientRect();
+    const cs=getComputedStyle(container);
+    let info={};
+    if(ifr){
+      const ir=ifr.getBoundingClientRect();
+      const ics=getComputedStyle(ifr);
+      const cx=Math.round(ir.left+ir.width/2), cy=Math.round(ir.top+ir.height/2);
+      const topEl=document.elementFromPoint(cx,cy);
+      info={ iframeRect:ir, iframeStyles:{ display:ics.display, visibility:ics.visibility, opacity:ics.opacity, pointerEvents:ics.pointerEvents, width:ics.width, height:ics.height },
+             hitPoint:{x:cx,y:cy}, elementFromPoint: topEl && { tag:topEl.tagName, id:topEl.id, class:topEl.className } };
+    }
+    log(tag||"diag", "\ncontainerRect",crect, "\ncontainerStyles",{display:cs.display,visibility:cs.visibility,opacity:cs.opacity,position:cs.position,zIndex:cs.zIndex},
+        "\niframePresent",!!ifr, info);
+  }
+  setTimeout(()=>diag("after 350ms"),350);
+  setTimeout(()=>diag("after 1000ms"),1000);
+
+  // Common payment flow (works for PRB + manual)
   pr.on("paymentmethod", ev => {
     log("paymentmethod",{ pm: ev.paymentMethod && ev.paymentMethod.id, payerEmail: ev.payerEmail });
     runFlow(ev.paymentMethod.id, ev.payerEmail, ev.complete);
   });
 
-  manualBtn.addEventListener("click", async () => {
+  document.getElementById("force").addEventListener("click", async () => {
     try{
       if(typeof pr.show === "function"){
         log("Manual button -> pr.show()");
         await pr.show(); // will emit 'paymentmethod'
       } else {
-        log("pr.show() not available.");
+        log("pr.show() not available on this Stripe paymentRequest object.");
       }
     }catch(e){ log("pr.show() error:", e && (e.message||String(e))); }
   });
@@ -166,7 +203,6 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
       const paymentMethodId=setupRes.setupIntent?.payment_method || pmId;
       const payload={ paymentMethodId, userId, email: payerEmail || emailParam || "", sub_type, isDiscounted };
       log("POST CreateSubscription",{ url: CREATE_SUB_URL, body: payload });
-
       const subRes=await fetch(CREATE_SUB_URL,{ method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
       const subText=await subRes.text();
       log("CreateSubscription status",subRes.status,"raw:",subText);
@@ -174,7 +210,7 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
       if(!subRes.ok||subJson.error) throw new Error(subJson.error||("Create subscription failed ("+subRes.status+")"));
 
       const sid=subJson.subscriptionId||"";
-      const redirect=new URL(SUCCESS_RETURN_URL);
+      const redirect=new URL("https://parallellive.app/checkout_redirect/success");
       redirect.searchParams.set("userId",userId);
       redirect.searchParams.set("sub_type",sub_type);
       if(sid) redirect.searchParams.set("sid",sid);
