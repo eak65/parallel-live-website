@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v18</title>
+  <title>Start Free Trial — v19</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -61,6 +61,8 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
+      position: relative;
+      z-index: 100;
     }
     
     .apple-pay-button:hover {
@@ -383,12 +385,37 @@
 
     try {
       prButton.mount("#applePayBtn");
+      debugLog("Payment Request Button mounted successfully");
+      
+      // Immediately check what was created
+      setTimeout(() => {
+        const container = document.getElementById("applePayBtn");
+        debugLog(`Container content after mount: ${container.innerHTML}`);
+        
+        const iframe = container.querySelector("iframe");
+        const stripeElements = container.querySelectorAll("*");
+        
+        debugLog(`Elements found after mount: ${stripeElements.length}`);
+        stripeElements.forEach((el, i) => {
+          debugLog(`Element ${i}: ${el.tagName} - display:${getComputedStyle(el).display} - opacity:${getComputedStyle(el).opacity}`);
+        });
+        
+        if (iframe) {
+          debugLog(`Iframe still exists: ${!!iframe}`);
+          debugLog(`Iframe style: ${iframe.getAttribute('style')}`);
+        } else {
+          debugLog("No iframe found after mount - Stripe may have removed it");
+          // Force show our fallback
+          document.getElementById("fallbackBtn").style.display = "flex";
+          document.getElementById("fallbackBtn").style.position = "relative";
+          document.getElementById("fallbackBtn").style.zIndex = "100";
+        }
+      }, 100);
+      
     } catch (err) {
       debugLog(`Mount error: ${err.message}`);
       throw err;
     }
-
-    debugLog("Payment Request Button mounted successfully");
 
     // 5) Handle the payment method event
     paymentRequest.on("paymentmethod", async (event) => {
