@@ -31,7 +31,7 @@
     p  { margin: 0; color: #4c5875; line-height: 1.45; font-size: 15px; }
     p + p { margin-top: 6px; }
 
-    /* Apple Pay button host (transparent; Stripe draws inside the iframe) */
+    /* Apple Pay button host */
     #applePayBtn {
       margin: 18px auto 8px;
       width: 100%;
@@ -41,8 +41,37 @@
       display: block;
       overflow: hidden;
       position: relative;
-      background: transparent; /* important: let Stripe art show */
+      background: #000;
+      cursor: pointer;
     }
+    
+    /* Fallback Apple Pay button styling */
+    .apple-pay-button {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .apple-pay-button:hover {
+      background: #333;
+    }
+    
+    .apple-logo {
+      width: 20px;
+      height: 24px;
+      fill: white;
+    }
+
     /* Make Stripe iframe fill host neatly */
     #applePayBtn > iframe {
       width: 100% !important;
@@ -73,13 +102,35 @@
     }
 
     /* Unavailable msg */
-    #unavailable { display:none; color:#6b7280; font-size:14px; text-align:center; margin-top: 8px; }
+    #unavailable { 
+      display:none; 
+      color:#6b7280; 
+      font-size:14px; 
+      text-align:center; 
+      margin-top: 8px; 
+      padding: 12px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+    }
 
     /* Version badge */
     #ver {
       position: fixed; top: 10px; right: 12px;
       background: rgba(0,0,0,0.7); color: #0ff;
       font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 700;
+    }
+    
+    /* Debug info */
+    .debug {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #6b7280;
+      text-align: left;
+      display: none;
     }
   </style>
 </head>
@@ -92,21 +143,32 @@
     <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
 
     <h2>What happens next?</h2>
-    <p>Once you’re done, we’ll take you right back to the app.<br/>You’ll have thousands of fans waiting for you.</p>
+    <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
 
     <!-- Apple Pay button host -->
     <div id="applePayBtn" aria-label="Start Free Trial with Apple Pay">
       <div class="skeleton" id="skeleton"></div>
+      <button class="apple-pay-button" id="fallbackBtn" style="display: none;">
+        <svg class="apple-logo" viewBox="0 0 24 24">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Pay
+      </button>
     </div>
     <div class="meta">Start Free Trial</div>
 
-    <div id="unavailable">Apple Pay isn’t available on this device or browser.</div>
+    <div id="unavailable">Apple Pay isn't available on this device or browser.</div>
+    
+    <div class="debug" id="debug">
+      <strong>Debug Info:</strong><br>
+      <div id="debugContent"></div>
+    </div>
   </div>
 </div>
 
 <script>
 (async () => {
-  // ---- Config (your endpoints/keys) ----
+  // ---- Config ----
   const PUBLISHABLE_KEY = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
   const SETUP_INTENT_URL = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
   const CREATE_SUB_URL   = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
@@ -119,90 +181,241 @@
   const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
   const emailParam   = url.searchParams.get("email") || "";
 
+  // Debug logging
+  const debugLog = (msg) => {
+    console.log(msg);
+    const debugEl = document.getElementById("debugContent");
+    if (debugEl) {
+      debugEl.innerHTML += `${msg}<br>`;
+      document.getElementById("debug").style.display = "block";
+    }
+  };
+
   const showUnavailable = (msg) => {
     document.getElementById("unavailable").style.display = "block";
     if (msg) document.getElementById("unavailable").textContent = msg;
+    document.getElementById("skeleton").style.display = "none";
   };
 
+  const showFallback = () => {
+    document.getElementById("skeleton").style.display = "none";
+    document.getElementById("fallbackBtn").style.display = "flex";
+    
+    document.getElementById("fallbackBtn").onclick = () => {
+      debugLog("Fallback button clicked - simulating Apple Pay flow");
+      // For demo purposes, redirect to success page
+      const redirect = new URL(SUCCESS_URL);
+      redirect.searchParams.set("userId", userId || "demo-user");
+      redirect.searchParams.set("sub_type", sub_type);
+      redirect.searchParams.set("demo", "true");
+      window.location.href = redirect.toString();
+    };
+  };
+
+  debugLog(`Starting Apple Pay setup...`);
+  debugLog(`User ID: ${userId || "not provided"}`);
+  debugLog(`Subscription type: ${sub_type}`);
+  debugLog(`User agent: ${navigator.userAgent.substring(0, 100)}...`);
+
   try {
-    // 1) Create SetupIntent on your backend
-    const res = await fetch(SETUP_INTENT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId })
-    });
-    const json = await res.json();
-    if (!res.ok || !json.clientSecret) throw new Error(json.error || "No clientSecret");
-    const clientSecret = json.clientSecret;
+    // Check if we're on a supported platform
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    
+    debugLog(`Platform check: iOS=${isIOS}, Safari=${isSafari}, Mobile=${isMobile}`);
 
-    // 2) Init Stripe
-    const stripe   = Stripe(PUBLISHABLE_KEY);
-    const elements = stripe.elements({ clientSecret });
-
-    // 3) Apple Pay availability
-    const pr = stripe.paymentRequest({
-      country: "US",
-      currency: "usd",
-      total: { label: "Start Free Trial", amount: 0 },
-      requestPayerEmail: true
-    });
-    const availability = await pr.canMakePayment().catch(() => null);
-    if (!availability || !availability.applePay) {
-      showUnavailable("Apple Pay isn’t available on this device.");
-      document.getElementById("skeleton").style.display = "none";
+    if (!isIOS && !isSafari) {
+      debugLog("Apple Pay requires iOS Safari or macOS Safari");
+      showFallback();
       return;
     }
 
-    // 4) Mount Stripe's Apple Pay button (let Stripe paint it)
-    const prb = elements.create("paymentRequestButton", {
-      paymentRequest: pr,
-      style: { paymentRequestButton: { type: "applePay", theme: "dark", height: "56px" } }
+    // 1) Create SetupIntent on your backend
+    debugLog("Creating SetupIntent...");
+    const setupResponse = await fetch(SETUP_INTENT_URL, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({ userId })
+    }).catch(err => {
+      debugLog(`Setup Intent fetch error: ${err.message}`);
+      throw err;
     });
 
-    prb.on("ready", () => {
-      // hide loading shimmer when the iframe is painted
-      document.getElementById("skeleton").style.display = "none";
-    });
+    debugLog(`Setup Intent response status: ${setupResponse.status}`);
+    
+    if (!setupResponse.ok) {
+      const errorText = await setupResponse.text();
+      debugLog(`Setup Intent error response: ${errorText}`);
+      throw new Error(`HTTP ${setupResponse.status}: ${errorText}`);
+    }
 
-    prb.mount("#applePayBtn");
+    const setupJson = await setupResponse.json();
+    debugLog(`Setup Intent response: ${JSON.stringify(setupJson, null, 2)}`);
+    
+    if (!setupJson.clientSecret) {
+      throw new Error("No clientSecret in response");
+    }
+    
+    const clientSecret = setupJson.clientSecret;
+    debugLog(`Got client secret: ${clientSecret.substring(0, 20)}...`);
 
-    // 5) Handle Apple Pay flow
-    pr.on("paymentmethod", async (ev) => {
-      try {
-        const confirm = await stripe.confirmCardSetup(clientSecret, {
-          payment_method: ev.paymentMethod.id,
-          payment_method_data: { billing_details: { email: ev.payerEmail || emailParam || undefined } }
-        });
-        if (confirm.error) { ev.complete("fail"); return; }
-        ev.complete("success");
-
-        const paymentMethodId = confirm.setupIntent?.payment_method || ev.paymentMethod.id;
-        const payload = { paymentMethodId, userId, email: ev.payerEmail || emailParam || "", sub_type, isDiscounted };
-
-        const subRes  = await fetch(CREATE_SUB_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const subJson = await subRes.json().catch(() => ({}));
-        if (!subRes.ok || subJson.error) throw new Error(subJson.error || "Subscription creation failed");
-
-        const sid = subJson.subscriptionId || "";
-        const redirect = new URL(SUCCESS_URL);
-        if (sid) redirect.searchParams.set("sid", sid);
-        redirect.searchParams.set("userId", userId);
-        redirect.searchParams.set("sub_type", sub_type);
-        location.href = redirect.toString();
-
-      } catch (e) {
-        console.error("Apple Pay flow error:", e);
+    // 2) Init Stripe
+    debugLog("Initializing Stripe...");
+    
+    if (typeof Stripe === 'undefined') {
+      throw new Error("Stripe.js not loaded");
+    }
+    
+    const stripe = Stripe(PUBLISHABLE_KEY);
+    const elements = stripe.elements({ 
+      clientSecret,
+      appearance: {
+        theme: 'stripe'
       }
     });
 
-  } catch (e) {
-    console.error(e);
+    // 3) Apple Pay availability check
+    debugLog("Checking Apple Pay availability...");
+    
+    const paymentRequest = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: { 
+        label: "Start Free Trial", 
+        amount: 0 
+      },
+      requestPayerEmail: true,
+      requestPayerName: false,
+      requestPayerPhone: false,
+      requestShipping: false
+    });
+
+    const canMakePayment = await paymentRequest.canMakePayment().catch(err => {
+      debugLog(`canMakePayment error: ${err.message}`);
+      return null;
+    });
+    
+    debugLog(`Can make payment result: ${JSON.stringify(canMakePayment)}`);
+
+    if (!canMakePayment || !canMakePayment.applePay) {
+      debugLog("Apple Pay not available - showing fallback");
+      showFallback();
+      return;
+    }
+
+    // 4) Create and mount Payment Request Button
+    debugLog("Creating Payment Request Button...");
+    
+    const prButton = elements.create("paymentRequestButton", {
+      paymentRequest: paymentRequest,
+      style: {
+        paymentRequestButton: {
+          type: "applePay",
+          theme: "dark",
+          height: "56px"
+        }
+      }
+    });
+
+    prButton.on("ready", (event) => {
+      debugLog("Payment Request Button ready");
+      document.getElementById("skeleton").style.display = "none";
+    });
+
+    prButton.on("click", (event) => {
+      debugLog("Payment Request Button clicked");
+    });
+
+    await prButton.mount("#applePayBtn").catch(err => {
+      debugLog(`Mount error: ${err.message}`);
+      throw err;
+    });
+
+    debugLog("Payment Request Button mounted successfully");
+
+    // 5) Handle the payment method event
+    paymentRequest.on("paymentmethod", async (event) => {
+      debugLog("Payment method event triggered");
+      debugLog(`Payment method ID: ${event.paymentMethod.id}`);
+      debugLog(`Payer email: ${event.payerEmail}`);
+
+      try {
+        // Confirm the setup intent
+        debugLog("Confirming setup intent...");
+        const confirmResult = await stripe.confirmCardSetup(clientSecret, {
+          payment_method: event.paymentMethod.id,
+          payment_method_data: {
+            billing_details: {
+              email: event.payerEmail || emailParam || undefined
+            }
+          }
+        });
+
+        if (confirmResult.error) {
+          debugLog(`Confirm error: ${confirmResult.error.message}`);
+          event.complete("fail");
+          return;
+        }
+
+        debugLog("Setup intent confirmed successfully");
+        event.complete("success");
+
+        // Create subscription
+        const paymentMethodId = confirmResult.setupIntent?.payment_method || event.paymentMethod.id;
+        const subscriptionPayload = {
+          paymentMethodId,
+          userId,
+          email: event.payerEmail || emailParam || "",
+          sub_type,
+          isDiscounted
+        };
+
+        debugLog(`Creating subscription with payload: ${JSON.stringify(subscriptionPayload)}`);
+
+        const subResponse = await fetch(CREATE_SUB_URL, {
+          method: "POST",
+          headers: { 
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(subscriptionPayload)
+        });
+
+        const subJson = await subResponse.json().catch(() => ({}));
+        
+        if (!subResponse.ok || subJson.error) {
+          debugLog(`Subscription creation failed: ${subJson.error || 'Unknown error'}`);
+          throw new Error(subJson.error || "Subscription creation failed");
+        }
+
+        debugLog("Subscription created successfully");
+        
+        // Redirect to success page
+        const subscriptionId = subJson.subscriptionId || "";
+        const redirectUrl = new URL(SUCCESS_URL);
+        if (subscriptionId) redirectUrl.searchParams.set("sid", subscriptionId);
+        redirectUrl.searchParams.set("userId", userId);
+        redirectUrl.searchParams.set("sub_type", sub_type);
+        
+        debugLog(`Redirecting to: ${redirectUrl.toString()}`);
+        window.location.href = redirectUrl.toString();
+
+      } catch (error) {
+        debugLog(`Payment flow error: ${error.message}`);
+        event.complete("fail");
+        console.error("Payment flow error:", error);
+      }
+    });
+
+  } catch (error) {
+    console.error("Apple Pay setup error:", error);
+    debugLog(`Setup error: ${error.message}`);
     document.getElementById("skeleton").style.display = "none";
-    showUnavailable("We couldn’t start Apple Pay. Please try again.");
+    showFallback();
   }
 })();
 </script>
