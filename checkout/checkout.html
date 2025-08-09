@@ -124,6 +124,57 @@
     .hidden {
       display: none !important;
     }
+
+    /* Success state */
+    .success-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      position: relative;
+    }
+
+    .success-message {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0b1324;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .done-arrow {
+      position: absolute;
+      top: -40px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      transform: rotate(-45deg);
+    }
+
+    .done-arrow::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: #0369a1;
+      transform: translateY(-50%);
+    }
+
+    .done-arrow::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 38px;
+      width: 0;
+      height: 0;
+      border-left: 8px solid #0369a1;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      transform: translateY(-50%);
+    }
   </style>
 </head>
 <body>
@@ -154,6 +205,11 @@
     <h2>What happens next?</h2>
     <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
 
+    <div id="successView" class="success-view hidden">
+      <div class="done-arrow"></div>
+      <div class="success-message">Press Done to finish.</div>
+    </div>
+
     <div id="status"></div>
   </div>
 </div>
@@ -179,6 +235,8 @@
   const statusDiv = document.getElementById("status");
   const totalDueDiv = document.getElementById("totalDue");
   const totalAmountP = document.getElementById("totalAmount");
+  const successView = document.getElementById("successView");
+  const card = document.getElementById("card");
   
   // Show total due if provided
   if (totalDueParam) {
@@ -312,9 +370,19 @@
       console.log("Success! Redirecting to:", redirectUrl.toString());
       showStatus("Success! Redirecting...", "success");
       
+      // Show success view instead of redirecting immediately
+      totalDueDiv.style.display = 'none';
+      document.querySelector('.payment-container').style.display = 'none';
+      document.querySelector('h1').style.display = 'none';
+      document.querySelectorAll('h2, p').forEach(el => el.style.display = 'none');
+      statusDiv.style.display = 'none';
+      
+      successView.classList.remove('hidden');
+      
+      // Still redirect after a longer delay for fallback
       setTimeout(() => {
         window.location.href = redirectUrl.toString();
-      }, 1000);
+      }, 5000);
 
     } catch (error) {
       console.error("Payment error:", error);
