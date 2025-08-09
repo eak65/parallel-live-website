@@ -330,10 +330,12 @@
       debugLog("Payment Request Button clicked");
     });
 
-    await prButton.mount("#applePayBtn").catch(err => {
+    try {
+      prButton.mount("#applePayBtn");
+    } catch (err) {
       debugLog(`Mount error: ${err.message}`);
       throw err;
-    });
+    }
 
     debugLog("Payment Request Button mounted successfully");
 
