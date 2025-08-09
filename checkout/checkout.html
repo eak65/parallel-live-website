@@ -2,15 +2,18 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Apple Pay Debug — parallellive.app</title>
+  <title>Subscribe with Apple Pay</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
-    body { font-family:-apple-system, system-ui; margin:0; padding:24px; background:#0b0b0b; color:#fff; }
+    :root { color-scheme: dark; }
+    body { font-family:-apple-system, system-ui, Arial; margin:0; padding:24px; background:#0b0b0b; color:#fff; }
     #wrap { max-width:520px; margin:0 auto; text-align:center; }
     h1 { font-size:22px; margin:0 0 8px; }
     p  { opacity:.85; margin:0 0 18px; }
-    #apple { margin:24px auto; min-height:48px; }
+    /* Make sure the PRB has space and can't collapse */
+    #apple { display:block; margin:24px auto; width:100%; max-width:420px; min-height:56px; }
+    /* On-page log */
     #msg { margin-top:16px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.95; }
     .banner { position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:9999 }
     .banner a { color:#0af; text-decoration:underline }
@@ -19,7 +22,7 @@
 <body>
 <div id="wrap">
   <h1>Pro Access</h1>
-  <p>Apple Pay debug — this page never shows card fields.</p>
+  <p>Apple Pay only — no card fields.</p>
   <div id="apple"></div>
   <pre id="msg"></pre>
 </div>
@@ -27,14 +30,14 @@
 <script>
 /* ===== Ultra-verbose logger ===== */
 const log = (...a) => {
-  console.log("[AP DEBUG]", ...a);
+  console.log("[AP ONLY]", ...a);
   const line = a.map(x => typeof x === "object" ? JSON.stringify(x, null, 2) : String(x)).join(" ");
   document.querySelector("#msg").textContent += line + "\n";
 };
 window.onerror = (m, s, l, c, e) => log("window.onerror", m, s+":"+l, e && e.stack ? e.stack : e);
 window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.reason));
 
-/* ===== In-app browser detector (shows Safari banner) ===== */
+/* ===== In-app browser detector (suggest Safari) ===== */
 (function(){
   const ua = navigator.userAgent;
   const isInApp = /(FBAN|FBAV|FB_IAB|Line|Instagram|GSA|Twitter|TikTok|Snap|Pinterest|DuckDuckGo)/i.test(ua);
@@ -51,14 +54,14 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
 })();
 
 (async () => {
-  /* ===== YOUR CONFIG ===== */
+  // ===== YOUR CONFIG =====
   const PUBLISHABLE_KEY    = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
-  const SETUP_INTENT_URL   = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
-  const CREATE_SUB_URL     = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
-  const SUCCESS_RETURN_URL = "https://parallellive.app/checkout_redirect/success"; // <-- replace with your Universal Link
-  /* ======================== */
+  const SETUP_INTENT_URL   = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/"; // returns { clientSecret }
+  const CREATE_SUB_URL     = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";  // expects { paymentMethodId, userId, email, sub_type, isDiscounted }
+  const SUCCESS_RETURN_URL = "https://parallellive.app/checkout_redirect/success"; // TODO: your Universal Link
+  // ========================
 
-  // Params from URL (?userId=...&sub_type=weekly&isDiscounted=false&email=...)
+  // Params (?userId=...&sub_type=weekly|annual&isDiscounted=true|false&email=...)
   const url          = new URL(location.href);
   const userId       = url.searchParams.get("userId") || "";
   const sub_type     = url.searchParams.get("sub_type") || "weekly";
@@ -71,7 +74,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
   log("ApplePaySession exists:", !!window.ApplePaySession, 
       "native canMakePayments:", window.ApplePaySession?.canMakePayments?.());
 
-  // 1) Fetch SetupIntent (to collect a PaymentMethod for subscription)
+  // 1) Fetch SetupIntent to collect a PaymentMethod
   log("POST SetupIntent", { url: SETUP_INTENT_URL, body: { userId } });
   let clientSecret = "";
   try {
@@ -93,10 +96,10 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
     return;
   }
 
-  // 2) Init Stripe (setup mode) + Payment Request Button
+  // 2) Init Stripe (setup mode) + Payment Request Button (Apple Pay)
   const stripe   = Stripe(PUBLISHABLE_KEY);
   log("Stripe.js version", stripe.version || "n/a");
-  const elements = stripe.elements({ clientSecret }); // puts Elements in setup context
+  const elements = stripe.elements({ clientSecret }); // setup-mode is important
 
   const pr = stripe.paymentRequest({
     country: "US",
@@ -111,19 +114,21 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
 
   if (!(can && (can.applePay || can.applePay === true))) {
     document.getElementById("apple").style.display = "none";
-    log("Apple Pay unavailable for this context. Common causes:", 
-        "in-app browser / SFSafariViewController, not HTTPS, not top-level, domain not enabled in Stripe Test mode, or no supported card.");
+    log("Apple Pay unavailable for this context. Likely in-app browser/SFSafariVC, not HTTPS/top-level, or domain not enabled.");
     return;
   }
 
-  // Mount Apple Pay button
+  // Make sure the container has height before mounting
+  const container = document.getElementById("apple");
+  container.style.minHeight = "56px";
+  container.style.width = "100%";
+
   const btn = elements.create("paymentRequestButton", {
     paymentRequest: pr,
-    style: { paymentRequestButton: { type: "applePay" } }
+    style: { paymentRequestButton: { type: "applePay" } } // default style; visible on dark bg
   });
   btn.on("ready", () => log("PRB ready"));
-  try { btn.mount("#apple"); log("PRB mounted"); } 
-  catch(e) { log("PRB mount error", e.message); return; }
+  try { btn.mount("#apple"); log("PRB mounted"); } catch(e) { log("PRB mount error", e.message); return; }
 
   // 3) On Apple Pay tap → confirm SetupIntent → create subscription → redirect
   pr.on("paymentmethod", async (ev) => {
@@ -148,7 +153,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
       const paymentMethodId = setupRes.setupIntent?.payment_method || ev.paymentMethod.id;
       log("Using paymentMethodId", paymentMethodId);
 
-      // Create subscription
+      // Call your create-subscription API
       const payload = {
         paymentMethodId,
         userId,
@@ -179,7 +184,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
       location.href = redirect.toString();
 
     } catch(e) {
-      log("PRB flow error", e.message);
+      log("Apple Pay flow error", e.message);
     }
   });
 })();
