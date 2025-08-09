@@ -136,6 +136,10 @@
 
     <h2>What happens next?</h2>
     <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
+    
+    <div id="totalDue" class="hidden">
+      <p id="totalAmount"></p>
+    </div>
 
     <div class="payment-container">
       <!-- Stripe will mount the Apple Pay button here -->
@@ -168,10 +172,19 @@
   const sub_type = url.searchParams.get("sub_type") || "weekly";
   const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
   const emailParam = url.searchParams.get("email") || "";
+  const totalDueParam = url.searchParams.get("totalDue") || "";
 
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
   const fallbackButton = document.getElementById("fallbackBtn");
   const statusDiv = document.getElementById("status");
+  const totalDueDiv = document.getElementById("totalDue");
+  const totalAmountP = document.getElementById("totalAmount");
+  
+  // Show total due if provided
+  if (totalDueParam) {
+    totalAmountP.textContent = totalDueParam;
+    totalDueDiv.classList.remove('hidden');
+  }
   
   const showStatus = (message, type = 'info') => {
     statusDiv.className = `status ${type}`;
