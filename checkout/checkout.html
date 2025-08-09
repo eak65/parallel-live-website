@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Subscribe with Apple Pay — DEBUG v3</title>
+  <title>Subscribe with Apple Pay — DEBUG v4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -13,15 +13,18 @@
     h1 { font-size:22px; margin:0 0 8px; }
     p  { opacity:.85; margin:0 0 18px; }
 
-    /* PRB container – flex center, no padding, tight height so iframe is the tap target */
+    /* PRB container */
     #apple{
       display:flex; align-items:center; justify-content:center;
-      width:100%; max-width:520px; min-height:48px;
-      margin:24px auto;
+      width:100%; max-width:520px; min-height:48px; margin:24px auto;
       background:rgba(0,200,255,.08);
       outline:2px dashed #0af; outline-offset:4px;
-      position:relative; z-index:999999; pointer-events:auto;
+      position:relative; z-index:999999;
+      pointer-events:auto;
     }
+    /* Try to ensure the iframe itself can receive taps */
+    #apple > iframe { pointer-events:auto !important; display:block; }
+
     /* On-page log */
     #msg { margin-top:16px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.95; }
 
@@ -35,30 +38,35 @@
     .banner{ position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:100000 }
     .banner a{ color:#0af; text-decoration:underline }
 
-    /* Optional manual trigger (debug) */
-    #manual{ margin-top:12px; display:none; }
-    #manual button{ background:#0af; color:#000; border:0; border-radius:10px; padding:12px 16px; font-size:16px; font-weight:600; }
+    /* Gesture overlay to trigger pr.show() as fallback */
+    #tapOverlay{
+      position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+      background:transparent; z-index:1000000; /* above iframe */
+    }
+    #tapOverlay button{
+      background:#fff; color:#000; border:0; border-radius:12px; padding:12px 16px;
+      font-size:17px; font-weight:700;
+    }
   </style>
 </head>
 <body>
-<div id="version">v3</div>
+<div id="version">v4</div>
 <div id="wrap">
   <h1>Pro Access</h1>
   <p>Apple Pay only — no card fields. All logs shown below.</p>
 
-  <div id="apple"></div>
-  <div id="manual"><button id="force">Try to open Apple Pay</button></div>
+  <div id="apple">
+    <div id="tapOverlay"><button>Pay with Pay</button></div>
+  </div>
 
   <pre id="msg"></pre>
 </div>
 
 <script>
-/* ===== logger ===== */
 const log=(...a)=>{console.log("[AP DEBUG]",...a);const s=a.map(x=>typeof x==="object"?JSON.stringify(x,null,2):String(x)).join(" ");document.querySelector("#msg").textContent+=s+"\n";};
 window.onerror=(m,s,l,c,e)=>log("window.onerror",m,s+":"+l,e&&e.stack?e.stack:e);
 window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reason));
 
-/* ===== in-app browser detector ===== */
 (function(){
   const ua=navigator.userAgent;
   const isInApp=/(FBAN|FBAV|FB_IAB|Line|Instagram|GSA|Twitter|TikTok|Snap|Pinterest|DuckDuckGo)/i.test(ua);
@@ -75,12 +83,12 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
 })();
 
 (async()=>{
-  /* ===== your config ===== */
+  // ===== your config =====
   const PUBLISHABLE_KEY="pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
   const SETUP_INTENT_URL="https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
   const CREATE_SUB_URL="https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
   const SUCCESS_RETURN_URL="https://parallellive.app/checkout_redirect/success";
-  /* ======================= */
+  // =======================
 
   // URL params
   const url=new URL(location.href);
@@ -130,15 +138,15 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
   }
 
   const container=document.getElementById("apple");
+  const tapOverlay=document.getElementById("tapOverlay");
   container.addEventListener("click",()=>log("container click"));
   container.addEventListener("touchstart",()=>log("container touchstart"));
 
   const btn=elements.create("paymentRequestButton",{ paymentRequest:pr, style:{ paymentRequestButton:{ type:"applePay" } } });
   btn.on("ready",()=>log("PRB ready"));
-
   try{ btn.mount("#apple"); log("PRB mounted"); }catch(e){ log("PRB mount error",e.message); return; }
 
-  // Post-mount diagnostics: measure the actual iframe and hit-test at its center
+  // Post-mount diagnostics: iframe styles + precise hit test
   function diag(tag){
     const ifr=container.querySelector("iframe");
     const cs=getComputedStyle(container);
@@ -146,10 +154,16 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
     let info={};
     if(ifr){
       const ir=ifr.getBoundingClientRect();
+      const ics=getComputedStyle(ifr);
       const cx=Math.round(ir.left+ir.width/2);
       const cy=Math.round(ir.top+ir.height/2);
       const topEl=document.elementFromPoint(cx,cy);
-      info={ iframeRect:ir, hitPoint:{x:cx,y:cy}, elementFromPoint: topEl && { tag:topEl.tagName, id:topEl.id, class:topEl.className } };
+      info={
+        iframeRect:ir,
+        iframeStyles:{ display:ics.display, visibility:ics.visibility, opacity:ics.opacity, pointerEvents:ics.pointerEvents, position:ics.position, zIndex:ics.zIndex },
+        hitPoint:{x:cx,y:cy},
+        elementFromPoint: topEl && { tag:topEl.tagName, id:topEl.id, class:topEl.className }
+      };
     }
     log(tag||"diag",
         "\ncontainerRect",crect,
@@ -160,17 +174,38 @@ window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reaso
   setTimeout(()=>diag("after 350ms"),350);
   setTimeout(()=>diag("after 1000ms"),1000);
 
-  // If Stripe iframe didn't appear, expose manual PR.show tester
+  // === Gesture overlay fallback ===
+  // If the center hit-test doesn't return the iframe, expose a tappable overlay that calls pr.show()
   setTimeout(()=>{
     const ifr=container.querySelector("iframe");
-    if(!ifr){ log("Stripe iframe not found – exposing manual .show() tester"); document.getElementById("manual").style.display="block"; }
-  },1000);
-  document.getElementById("force").addEventListener("click",async()=>{
+    if(!ifr){ log("Stripe iframe not found – will show overlay."); tapOverlay.style.display="flex"; return; }
+    const ir=ifr.getBoundingClientRect();
+    const cx=Math.round(ir.left+ir.width/2);
+    const cy=Math.round(ir.top+ir.height/2);
+    const topEl=document.elementFromPoint(cx,cy);
+    if(!(topEl && topEl.tagName==="IFRAME")){
+      log("Center hit-test not on iframe; enabling tap overlay to call pr.show()");
+      tapOverlay.style.display="flex";
+    } else {
+      // If iframe is really there and hit-test succeeds, keep overlay hidden
+      tapOverlay.style.display="none";
+    }
+  }, 800);
+
+  tapOverlay.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
     try{
-      if(typeof pr.show==="function"){ log("Attempting pr.show()…"); await pr.show(); }
-      else{ log("pr.show() not available on this Stripe paymentRequest object."); }
-    }catch(e){ log("pr.show() error:",e.message||e); }
-  });
+      if(typeof pr.show==="function"){
+        log("Overlay tap → pr.show()");
+        await pr.show(); // should trigger Apple Pay sheet on user gesture
+      } else {
+        log("pr.show() not available on this Stripe paymentRequest object.");
+      }
+    }catch(err){
+      log("pr.show() error:", err && (err.message||String(err)));
+    }
+  }, { passive:false });
 
   // 3) Payment flow
   pr.on("paymentmethod",async(ev)=>{
