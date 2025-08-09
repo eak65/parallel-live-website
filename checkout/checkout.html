@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v19</title>
+  <title>Start Free Trial — v20</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -147,7 +147,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v19</div>
+<div id="ver">v20</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -360,8 +360,24 @@
           iframe.style.right = "0";
           iframe.style.bottom = "0";
           iframe.style.zIndex = "10";
+          iframe.style.pointerEvents = "auto";
+          iframe.style.cursor = "pointer";
           
-          debugLog("Iframe styling applied");
+          // Add visual border to see if iframe is actually there
+          iframe.style.border = "2px solid red";
+          
+          // Add click handler to container as backup
+          container.onclick = (e) => {
+            debugLog("Container clicked - iframe might not be responding");
+            if (!e.target.closest("iframe")) {
+              debugLog("Click was outside iframe - triggering payment request directly");
+              if (paymentRequest) {
+                paymentRequest.show();
+              }
+            }
+          };
+          
+          debugLog("Iframe styling applied with red border for debugging");
         } else {
           debugLog("No valid iframe found - keeping fallback visible");
           document.getElementById("fallbackBtn").style.display = "flex";
