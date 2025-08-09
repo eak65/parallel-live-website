@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v27</title>
+  <title>Start Free Trial — v28</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -136,11 +136,12 @@
     }
 
     .success-message {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 600;
       color: #0b1324;
-      margin-bottom: 20px;
       text-align: center;
+      line-height: 1.5;
+      padding: 20px;
     }
 
     .done-arrow {
@@ -178,7 +179,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v27</div>
+<div id="ver">v28</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -206,8 +207,7 @@
     <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
 
     <div id="successView" class="success-view hidden">
-      <div class="done-arrow"></div>
-      <div class="success-message">Press Done to finish.</div>
+      <div class="success-message">Success! Welcome to Parallel Live.<br/>You can now close the browser and return to the app.</div>
     </div>
 
     <div id="status"></div>
@@ -403,9 +403,8 @@
       redirectUrl.searchParams.set("sub_type", sub_type);
       
       console.log("Success! Redirecting to:", redirectUrl.toString());
-      showStatus("Success! Redirecting...", "success");
       
-      // Show success view instead of redirecting immediately
+      // Show success view and redirect immediately
       totalDueDiv.style.display = 'none';
       document.querySelector('.payment-container').style.display = 'none';
       document.querySelector('h1').style.display = 'none';
@@ -414,10 +413,8 @@
       
       successView.classList.remove('hidden');
       
-      // Still redirect after a longer delay for fallback
-      setTimeout(() => {
-        window.location.href = redirectUrl.toString();
-      }, 5000);
+      // Redirect immediately
+      window.location.href = redirectUrl.toString();
 
     } catch (error) {
       console.error("Payment error:", error);
