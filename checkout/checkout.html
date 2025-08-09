@@ -320,12 +320,7 @@
       // 2) Confirm the setup intent with the payment method
       console.log("Confirming setup intent...");
       const confirmResult = await stripe.confirmCardSetup(clientSecret, {
-        payment_method: paymentMethod.id,
-        payment_method_data: {
-          billing_details: {
-            email: payerEmail || emailParam || undefined
-          }
-        }
+        payment_method: paymentMethod.id
       });
 
       if (confirmResult.error) {
