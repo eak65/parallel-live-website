@@ -327,15 +327,39 @@
   try {
     console.log("Creating payment request...");
     
+    // Determine payment summary items based on subscription type
+    let displayItems = [];
+    let totalAmount = 0;
+    let totalLabel = "Start Free Trial";
+    
+    if (sub_type === "weekly") {
+      displayItems = [
+        { label: "Weekly Subscription", amount: 999 }, // $9.99 in cents
+        { label: "7-Day Free Trial", amount: -999 }    // -$9.99 discount
+      ];
+      totalAmount = 0;
+      totalLabel = "Free Trial (Then $9.99/week)";
+    } else if (sub_type === "annual" || sub_type === "yearly") {
+      const price = isDiscounted ? 3499 : 6999; // $34.99 or $69.99 in cents
+      displayItems = [
+        { label: "Annual Subscription", amount: price },
+        { label: "7-Day Free Trial", amount: -price }
+      ];
+      totalAmount = 0;
+      totalLabel = isDiscounted ? "Free Trial (Then $34.99/year)" : "Free Trial (Then $69.99/year)";
+    } else {
+      // Default case
+      displayItems = [
+        { label: "Subscription", amount: 0 }
+      ];
+    }
+    
     paymentRequest = stripe.paymentRequest({
       country: "US",
       currency: "usd",
-      total: { label: "Start Free Trial", amount: 0 },
-      requestPayerEmail: true,
-      // Add display items for better UX
-      displayItems: [
-        { label: "Free Trial (7 days)", amount: 0 }
-      ]
+      total: { label: totalLabel, amount: totalAmount },
+      displayItems: displayItems,
+      requestPayerEmail: true
     });
 
     console.log("Checking Apple Pay availability...");
