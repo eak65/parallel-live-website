@@ -147,7 +147,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v18</div>
+<div id="ver">v19</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -337,46 +337,38 @@
       debugLog("Payment Request Button ready");
       document.getElementById("skeleton").style.display = "none";
       
-      // Don't hide fallback immediately - let's see what happens
-      debugLog("Keeping fallback visible for inspection");
-      
       // Check what Stripe actually created
-      const checkStripeButton = () => {
+      setTimeout(() => {
         const container = document.getElementById("applePayBtn");
         const iframe = container.querySelector("iframe");
-        const allChildren = container.querySelectorAll("*");
+        const stripeElements = container.querySelectorAll("div, iframe");
         
-        debugLog(`Container innerHTML: ${container.innerHTML}`);
-        debugLog(`Container children count: ${allChildren.length}`);
-        debugLog(`Iframe found: ${!!iframe}`);
+        debugLog(`Container content after mount: ${container.innerHTML}`);
+        debugLog(`Elements found after mount: ${stripeElements.length}`);
         
-        if (iframe) {
-          debugLog(`Iframe src: ${iframe.src}`);
-          debugLog(`Iframe dimensions: ${iframe.offsetWidth}x${iframe.offsetHeight}`);
-          debugLog(`Iframe computed style: display=${getComputedStyle(iframe).display}, visibility=${getComputedStyle(iframe).visibility}, opacity=${getComputedStyle(iframe).opacity}`);
+        if (iframe && iframe.offsetHeight > 0) {
+          debugLog(`Iframe found with height ${iframe.offsetHeight}px - hiding fallback`);
+          document.getElementById("fallbackBtn").style.display = "none";
           
-          // Check if iframe has actual content
-          iframe.onload = () => {
-            debugLog("Iframe loaded");
-            try {
-              debugLog(`Iframe document ready state: ${iframe.contentDocument?.readyState || 'cannot access'}`);
-            } catch (e) {
-              debugLog("Cannot access iframe content (CORS)");
-            }
-          };
+          // Force proper iframe styling
+          iframe.style.width = "100%";
+          iframe.style.minWidth = "100%";
+          iframe.style.maxWidth = "100%";
+          iframe.style.position = "absolute";
+          iframe.style.top = "0";
+          iframe.style.left = "0";
+          iframe.style.right = "0";
+          iframe.style.bottom = "0";
+          iframe.style.zIndex = "10";
+          
+          debugLog("Iframe styling applied");
+        } else {
+          debugLog("No valid iframe found - keeping fallback visible");
+          document.getElementById("fallbackBtn").style.display = "flex";
+          document.getElementById("fallbackBtn").style.position = "relative";
+          document.getElementById("fallbackBtn").style.zIndex = "100";
         }
-        
-        // List all child elements
-        allChildren.forEach((child, i) => {
-          debugLog(`Child ${i}: ${child.tagName} - display:${getComputedStyle(child).display} - dimensions:${child.offsetWidth}x${child.offsetHeight}`);
-        });
-      };
-      
-      // Check immediately and after delays
-      checkStripeButton();
-      setTimeout(checkStripeButton, 500);
-      setTimeout(checkStripeButton, 1000);
-      setTimeout(checkStripeButton, 2000);
+      }, 200);
     });
 
     prButton.on("click", (event) => {
