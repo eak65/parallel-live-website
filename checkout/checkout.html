@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v25</title>
+  <title>Start Free Trial — v27</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -178,7 +178,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v25</div>
+<div id="ver">v27</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -350,6 +350,8 @@
 
       console.log("Creating subscription with payload:", subscriptionPayload);
 
+      let subscriptionId;
+      
       try {
         const subResponse = await fetch(CREATE_SUB_URL, {
           method: "POST",
@@ -358,23 +360,43 @@
         });
 
         console.log("Subscription response status:", subResponse.status);
-        console.log("Subscription response headers:", subResponse.headers);
+        console.log("Subscription response headers:", Object.fromEntries(subResponse.headers.entries()));
+
+        if (!subResponse.ok) {
+          const errorText = await subResponse.text();
+          console.error("Subscription HTTP error:", errorText);
+          throw new Error(`Subscription API error: ${subResponse.status} - ${errorText}`);
+        }
 
         const subJson = await subResponse.json();
         console.log("Subscription response:", subJson);
         
-        if (!subResponse.ok || subJson.error) {
-          const errorText = await subResponse.text();
-          console.error("Subscription error response:", errorText);
-          throw new Error(subJson.error || `Subscription creation failed: ${subResponse.status} - ${errorText}`);
+        if (subJson.error) {
+          throw new Error(subJson.error);
         }
+
+        if (!subJson.subscriptionId) {
+          throw new Error("No subscription ID returned from server");
+        }
+
+        // Success - get subscription ID
+        subscriptionId = subJson.subscriptionId;
+
       } catch (fetchError) {
-        console.error("Subscription fetch error:", fetchError);
-        throw new Error(`Failed to create subscription: ${fetchError.message}`);
+        console.error("Subscription fetch error details:", {
+          name: fetchError.name,
+          message: fetchError.message,
+          stack: fetchError.stack
+        });
+        
+        if (fetchError.message.includes('Failed to fetch') || fetchError.message.includes('load failed')) {
+          throw new Error(`Network error: Cannot reach subscription server. Please check your internet connection.`);
+        } else {
+          throw new Error(`Failed to create subscription: ${fetchError.message}`);
+        }
       }
 
       // 4) Redirect to success
-      const subscriptionId = subJson.subscriptionId || "";
       const redirectUrl = new URL(SUCCESS_URL);
       if (subscriptionId) redirectUrl.searchParams.set("sid", subscriptionId);
       redirectUrl.searchParams.set("userId", userId);
