@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v23</title>
+  <title>Start Free Trial — v24</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -178,7 +178,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v23</div>
+<div id="ver">v24</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -445,7 +445,7 @@
         console.log("Payment method selected:", event.paymentMethod.id);
         
         try {
-          await handlePayment(event.paymentMethod, event.payerEmail);
+          await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
           event.complete("success");
         } catch (error) {
           console.error("Payment flow error:", error);
