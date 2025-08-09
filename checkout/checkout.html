@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Subscribe with Apple Pay — DEBUG v2</title>
+  <title>Subscribe with Apple Pay — DEBUG v3</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -13,40 +13,35 @@
     h1 { font-size:22px; margin:0 0 8px; }
     p  { opacity:.85; margin:0 0 18px; }
 
-    /* PRB container – make it unmissable and on top */
-    #apple {
-      display:block; width:100%; max-width:520px; min-height:80px;
-      margin:24px auto; padding:8px;
-      background:rgba(0, 200, 255, .08);
+    /* PRB container – flex center, no padding, tight height so iframe is the tap target */
+    #apple{
+      display:flex; align-items:center; justify-content:center;
+      width:100%; max-width:520px; min-height:48px;
+      margin:24px auto;
+      background:rgba(0,200,255,.08);
       outline:2px dashed #0af; outline-offset:4px;
-      position:relative; z-index:999999;
-      pointer-events:auto;
+      position:relative; z-index:999999; pointer-events:auto;
     }
-    #apple * { pointer-events:auto !important; }
-
     /* On-page log */
     #msg { margin-top:16px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.95; }
 
     /* Version badge */
-    #version {
-      position: fixed; top: 10px; right: 12px;
-      background: rgba(0,0,0,0.7); color: #0ff;
-      padding: 4px 8px; font-size: 12px; border-radius: 6px; z-index: 100001; font-weight: bold;
+    #version{
+      position:fixed; top:10px; right:12px; background:rgba(0,0,0,.7);
+      color:#0ff; padding:4px 8px; font-size:12px; border-radius:6px; z-index:100001; font-weight:bold;
     }
 
     /* In-app context banner */
-    .banner { position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:100000 }
-    .banner a { color:#0af; text-decoration:underline }
+    .banner{ position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:100000 }
+    .banner a{ color:#0af; text-decoration:underline }
 
-    /* Optional manual trigger (for debugging only) */
-    #manual { margin-top:12px; display:none; }
-    #manual button {
-      background:#0af; color:#000; border:0; border-radius:10px; padding:12px 16px; font-size:16px; font-weight:600;
-    }
+    /* Optional manual trigger (debug) */
+    #manual{ margin-top:12px; display:none; }
+    #manual button{ background:#0af; color:#000; border:0; border-radius:10px; padding:12px 16px; font-size:16px; font-weight:600; }
   </style>
 </head>
 <body>
-<div id="version">v2</div>
+<div id="version">v3</div>
 <div id="wrap">
   <h1>Pro Access</h1>
   <p>Apple Pay only — no card fields. All logs shown below.</p>
@@ -59,215 +54,158 @@
 
 <script>
 /* ===== logger ===== */
-const log = (...a) => {
-  console.log("[AP DEBUG]", ...a);
-  const s = a.map(x => typeof x === "object" ? JSON.stringify(x, null, 2) : String(x)).join(" ");
-  document.querySelector("#msg").textContent += s + "\n";
-};
-window.onerror = (m, s, l, c, e) => log("window.onerror", m, s+":"+l, e && e.stack ? e.stack : e);
-window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.reason));
+const log=(...a)=>{console.log("[AP DEBUG]",...a);const s=a.map(x=>typeof x==="object"?JSON.stringify(x,null,2):String(x)).join(" ");document.querySelector("#msg").textContent+=s+"\n";};
+window.onerror=(m,s,l,c,e)=>log("window.onerror",m,s+":"+l,e&&e.stack?e.stack:e);
+window.addEventListener("unhandledrejection",e=>log("unhandledrejection",e.reason));
 
 /* ===== in-app browser detector ===== */
 (function(){
-  const ua = navigator.userAgent;
-  const isInApp = /(FBAN|FBAV|FB_IAB|Line|Instagram|GSA|Twitter|TikTok|Snap|Pinterest|DuckDuckGo)/i.test(ua);
-  const isSafariVC = /\bSFSafariViewController\b/i.test(ua);
-  const notTop = (top !== self);
-  const notHttps = location.protocol !== "https:";
-  if (isInApp || isSafariVC || notTop || notHttps) {
-    const bar = document.createElement("div");
-    bar.className = "banner";
-    bar.innerHTML = 'For Apple Pay, open in Safari. <a href="'+location.href+'">Open</a>';
+  const ua=navigator.userAgent;
+  const isInApp=/(FBAN|FBAV|FB_IAB|Line|Instagram|GSA|Twitter|TikTok|Snap|Pinterest|DuckDuckGo)/i.test(ua);
+  const isSafariVC=/\bSFSafariViewController\b/i.test(ua);
+  const notTop=(top!==self);
+  const notHttps=location.protocol!=="https:";
+  if(isInApp||isSafariVC||notTop||notHttps){
+    const bar=document.createElement("div");
+    bar.className="banner";
+    bar.innerHTML='For Apple Pay, open in Safari. <a href="'+location.href+'">Open</a>';
     document.body.appendChild(bar);
-    log("Context might block Apple Pay:", { isInApp, isSafariVC, notTop, notHttps, ua });
+    log("Context might block Apple Pay:",{isInApp,isSafariVC,notTop,notHttps,ua});
   }
 })();
 
-(async () => {
+(async()=>{
   /* ===== your config ===== */
-  const PUBLISHABLE_KEY    = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
-  const SETUP_INTENT_URL   = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
-  const CREATE_SUB_URL     = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
-  const SUCCESS_RETURN_URL = "https://parallellive.app/checkout_redirect/success";
+  const PUBLISHABLE_KEY="pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
+  const SETUP_INTENT_URL="https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
+  const CREATE_SUB_URL="https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
+  const SUCCESS_RETURN_URL="https://parallellive.app/checkout_redirect/success";
   /* ======================= */
 
   // URL params
-  const url          = new URL(location.href);
-  const userId       = url.searchParams.get("userId") || "";
-  const sub_type     = url.searchParams.get("sub_type") || "weekly";
-  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
-  const emailParam   = url.searchParams.get("email") || "";
+  const url=new URL(location.href);
+  const userId=url.searchParams.get("userId")||"";
+  const sub_type=url.searchParams.get("sub_type")||"weekly";
+  const isDiscounted=(url.searchParams.get("isDiscounted")||"false")==="true";
+  const emailParam=url.searchParams.get("email")||"";
 
-  // environment probes
-  log("host", location.host, "https", location.protocol === "https:", "top-level", top === self);
-  log("UA", navigator.userAgent);
-  log("ApplePaySession exists:", !!window.ApplePaySession,
-      "native canMakePayments:", window.ApplePaySession?.canMakePayments?.());
+  // env
+  log("host",location.host,"https",location.protocol==="https:","top-level",top===self);
+  log("UA",navigator.userAgent);
+  log("ApplePaySession exists:",!!window.ApplePaySession,"native canMakePayments:",window.ApplePaySession?.canMakePayments?.());
 
   // 1) SetupIntent
-  log("POST SetupIntent", { url: SETUP_INTENT_URL, body: { userId } });
-  let clientSecret = "";
-  try {
-    const res  = await fetch(SETUP_INTENT_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify({ userId })
-    });
-    const text = await res.text();
-    log("SetupIntent status", res.status, "raw:", text);
-    let json = {};
-    try { json = JSON.parse(text); } catch(e) { throw new Error("SetupIntent non-JSON: " + text.slice(0, 300)); }
-    if (!res.ok) throw new Error(json.error || ("HTTP " + res.status));
-    if (!json.clientSecret) throw new Error("No clientSecret in SetupIntent response");
-    clientSecret = json.clientSecret;
-    log("clientSecret (setup) prefix", clientSecret.substring(0, 24) + "…");
-  } catch (e) {
-    log("SetupIntent fetch error:", e.message);
-    return;
-  }
+  log("POST SetupIntent",{url:SETUP_INTENT_URL,body:{userId}});
+  let clientSecret="";
+  try{
+    const res=await fetch(SETUP_INTENT_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({userId})});
+    const text=await res.text();
+    log("SetupIntent status",res.status,"raw:",text);
+    const json=JSON.parse(text);
+    if(!res.ok) throw new Error(json.error||("HTTP "+res.status));
+    if(!json.clientSecret) throw new Error("No clientSecret in SetupIntent response");
+    clientSecret=json.clientSecret;
+    log("clientSecret (setup) prefix",clientSecret.substring(0,24)+"…");
+  }catch(e){ log("SetupIntent fetch error:",e.message); return; }
 
-  // 2) Stripe + Payment Request
-  const stripe   = Stripe(PUBLISHABLE_KEY);
-  log("Stripe.js version", stripe.version || "n/a");
-  const elements = stripe.elements({ clientSecret }); // setup-mode
+  // 2) Stripe + PRB
+  const stripe=Stripe(PUBLISHABLE_KEY);
+  log("Stripe.js version",stripe.version||"n/a");
+  const elements=stripe.elements({clientSecret}); // setup-mode
 
-  const pr = stripe.paymentRequest({
-    country: "US",
-    currency: "usd",
-    total: { label: "Pro Access", amount: 0 },
-    requestPayerEmail: true
+  const pr=stripe.paymentRequest({
+    country:"US",
+    currency:"usd",
+    total:{label:"Pro Access",amount:0},
+    requestPayerEmail:true
   });
 
-  let can = null;
-  try { can = await pr.canMakePayment(); } catch(e) { log("canMakePayment error", e.message); }
-  log("Stripe canMakePayment →", can);
-
-  if (!(can && (can.applePay || can.applePay === true))) {
-    document.getElementById("apple").style.display = "none";
+  let can=null;
+  try{ can=await pr.canMakePayment(); }catch(e){ log("canMakePayment error",e.message); }
+  log("Stripe canMakePayment →",can);
+  if(!(can&&(can.applePay||can.applePay===true))){
+    document.getElementById("apple").style.display="none";
     log("Apple Pay unavailable in this context.");
     return;
   }
 
-  // enforce container visibility & stacking
-  const container = document.getElementById("apple");
-  Object.assign(container.style, {
-    minHeight: "80px",
-    width: "100%",
-    maxWidth: "520px",
-    margin: "24px auto",
-    background: "rgba(0, 200, 255, 0.08)",
-    outline: "2px dashed #0af",
-    outlineOffset: "4px",
-    position: "relative",
-    zIndex: "999999",
-    pointerEvents: "auto"
-  });
+  const container=document.getElementById("apple");
+  container.addEventListener("click",()=>log("container click"));
+  container.addEventListener("touchstart",()=>log("container touchstart"));
 
-  const btn = elements.create("paymentRequestButton", {
-    paymentRequest: pr,
-    style: { paymentRequestButton: { type: "applePay" } }
-  });
-  btn.on("ready", () => log("PRB ready"));
+  const btn=elements.create("paymentRequestButton",{ paymentRequest:pr, style:{ paymentRequestButton:{ type:"applePay" } } });
+  btn.on("ready",()=>log("PRB ready"));
 
-  try {
-    btn.mount("#apple");
-    log("PRB mounted");
-  } catch(e) {
-    log("PRB mount error", e.message);
-    return;
-  }
+  try{ btn.mount("#apple"); log("PRB mounted"); }catch(e){ log("PRB mount error",e.message); return; }
 
-  // Post-mount diagnostics
-  function diag(tag) {
-    const rect = container.getBoundingClientRect();
-    const ifr  = container.querySelector("iframe");
-    const cs   = getComputedStyle(container);
-    const cx = Math.round(rect.left + rect.width/2);
-    const cy = Math.round(rect.top + rect.height/2);
-    const topEl = document.elementFromPoint(cx, cy);
-    log(tag || "diag",
-        "rect", rect,
-        "\nstyles", {
-          display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
-          position: cs.position, zIndex: cs.zIndex, transform: cs.transform,
-          overflow: cs.overflow, pointerEvents: cs.pointerEvents
-        },
-        "\niframe?", !!ifr, ifr && { w: ifr.offsetWidth, h: ifr.offsetHeight },
-        "\ncenter pt", { x: cx, y: cy },
-        "\nelementFromPoint", topEl && { tag: topEl.tagName, id: topEl.id, class: topEl.className }
+  // Post-mount diagnostics: measure the actual iframe and hit-test at its center
+  function diag(tag){
+    const ifr=container.querySelector("iframe");
+    const cs=getComputedStyle(container);
+    const crect=container.getBoundingClientRect();
+    let info={};
+    if(ifr){
+      const ir=ifr.getBoundingClientRect();
+      const cx=Math.round(ir.left+ir.width/2);
+      const cy=Math.round(ir.top+ir.height/2);
+      const topEl=document.elementFromPoint(cx,cy);
+      info={ iframeRect:ir, hitPoint:{x:cx,y:cy}, elementFromPoint: topEl && { tag:topEl.tagName, id:topEl.id, class:topEl.className } };
+    }
+    log(tag||"diag",
+        "\ncontainerRect",crect,
+        "\ncontainerStyles",{display:cs.display,visibility:cs.visibility,opacity:cs.opacity,position:cs.position,zIndex:cs.zIndex,transform:cs.transform,overflow:cs.overflow,pointerEvents:cs.pointerEvents},
+        "\niframePresent",!!ifr, info
     );
   }
-  setTimeout(() => diag("after 350ms"), 350);
-  setTimeout(() => diag("after 1000ms"), 1000);
+  setTimeout(()=>diag("after 350ms"),350);
+  setTimeout(()=>diag("after 1000ms"),1000);
 
-  // If the Stripe iframe didn't appear, show manual trigger button to test pr.show()
-  setTimeout(() => {
-    const ifr = container.querySelector("iframe");
-    if (!ifr) {
-      log("Stripe iframe not found – exposing manual .show() tester");
-      document.getElementById("manual").style.display = "block";
-    }
-  }, 1000);
-
-  document.getElementById("force").addEventListener("click", async () => {
-    try {
-      if (typeof pr.show === "function") {
-        log("Attempting pr.show()…");
-        await pr.show(); // may throw if Safari disallows without PRB
-      } else {
-        log("pr.show() not available on this Stripe paymentRequest object.");
-      }
-    } catch (e) {
-      log("pr.show() error:", e.message || e);
-    }
+  // If Stripe iframe didn't appear, expose manual PR.show tester
+  setTimeout(()=>{
+    const ifr=container.querySelector("iframe");
+    if(!ifr){ log("Stripe iframe not found – exposing manual .show() tester"); document.getElementById("manual").style.display="block"; }
+  },1000);
+  document.getElementById("force").addEventListener("click",async()=>{
+    try{
+      if(typeof pr.show==="function"){ log("Attempting pr.show()…"); await pr.show(); }
+      else{ log("pr.show() not available on this Stripe paymentRequest object."); }
+    }catch(e){ log("pr.show() error:",e.message||e); }
   });
 
-  // Payment flow
-  pr.on("paymentmethod", async (ev) => {
-    log("PRB paymentmethod", { pm: ev.paymentMethod && ev.paymentMethod.id, payerEmail: ev.payerEmail });
-    try {
-      const setupRes = await stripe.confirmCardSetup(clientSecret, {
-        payment_method: ev.paymentMethod.id,
-        payment_method_data: { billing_details: { email: ev.payerEmail || emailParam || undefined } }
+  // 3) Payment flow
+  pr.on("paymentmethod",async(ev)=>{
+    log("PRB paymentmethod",{ pm:ev.paymentMethod&&ev.paymentMethod.id, payerEmail:ev.payerEmail });
+    try{
+      const setupRes=await stripe.confirmCardSetup(clientSecret,{
+        payment_method:ev.paymentMethod.id,
+        payment_method_data:{ billing_details:{ email: ev.payerEmail || emailParam || undefined } }
       });
-      log("confirmCardSetup result", setupRes);
+      log("confirmCardSetup result",setupRes);
 
-      if (setupRes.error) {
-        ev.complete("fail");
-        log("confirmCardSetup error", setupRes.error);
-        return;
-      }
+      if(setupRes.error){ ev.complete("fail"); log("confirmCardSetup error",setupRes.error); return; }
 
       ev.complete("success");
-      const paymentMethodId = setupRes.setupIntent?.payment_method || ev.paymentMethod.id;
-      log("Using paymentMethodId", paymentMethodId);
+      const paymentMethodId=setupRes.setupIntent?.payment_method || ev.paymentMethod.id;
+      log("Using paymentMethodId",paymentMethodId);
 
-      const payload = { paymentMethodId, userId, email: ev.payerEmail || emailParam || "", sub_type, isDiscounted };
-      log("POST CreateSubscription", { url: CREATE_SUB_URL, body: payload });
+      const payload={ paymentMethodId, userId, email: ev.payerEmail || emailParam || "", sub_type, isDiscounted };
+      log("POST CreateSubscription",{ url: CREATE_SUB_URL, body: payload });
 
-      const subRes = await fetch(CREATE_SUB_URL, {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
+      const subRes=await fetch(CREATE_SUB_URL,{ method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload) });
+      const subText=await subRes.text();
+      log("CreateSubscription status",subRes.status,"raw:",subText);
+      let subJson={}; try{ subJson=JSON.parse(subText);}catch(_){}
+      if(!subRes.ok||subJson.error) throw new Error(subJson.error||("Create subscription failed ("+subRes.status+")"));
 
-      const subText = await subRes.text();
-      log("CreateSubscription status", subRes.status, "raw:", subText);
-      let subJson = {};
-      try { subJson = JSON.parse(subText); } catch(_) {}
-      if (!subRes.ok || subJson.error) throw new Error(subJson.error || ("Create subscription failed (" + subRes.status + ")"));
+      const sid=subJson.subscriptionId||"";
+      const redirect=new URL(SUCCESS_RETURN_URL);
+      redirect.searchParams.set("userId",userId);
+      redirect.searchParams.set("sub_type",sub_type);
+      if(sid) redirect.searchParams.set("sid",sid);
+      log("Redirecting to",redirect.toString());
+      location.href=redirect.toString();
 
-      const sid = subJson.subscriptionId || "";
-      const redirect = new URL(SUCCESS_RETURN_URL);
-      redirect.searchParams.set("userId", userId);
-      redirect.searchParams.set("sub_type", sub_type);
-      if (sid) redirect.searchParams.set("sid", sid);
-      log("Redirecting to", redirect.toString());
-      location.href = redirect.toString();
-
-    } catch(e) {
-      log("Apple Pay flow error", e.message);
-    }
+    }catch(e){ log("Apple Pay flow error",e.message); }
   });
 })();
 </script>
