@@ -2,216 +2,212 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Subscribe</title>
+  <title>Subscribe with Apple Pay (DEBUG)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
-    body { font-family: -apple-system, system-ui; margin:0; padding:16px; background:#0b0b0b; color:#fff; }
-    #wrap { max-width:520px; margin:0 auto; }
+    body { font-family:-apple-system, system-ui; margin:0; padding:24px; background:#0b0b0b; color:#fff; }
+    #wrap { max-width:520px; margin:0 auto; text-align:center; }
     h1 { font-size:22px; margin:0 0 8px; }
-    p  { opacity:.75; margin:0 0 16px; }
-    #apple { margin:20px 0; }
-    #or { text-align:center; opacity:.6; margin:18px 0; }
-    #card { margin-top:8px; }
-    button.action { width:100%; padding:14px; font-size:17px; border-radius:12px; border:0; }
-    #msg { margin-top:16px; min-height:20px; white-space:pre-wrap; }
+    p  { opacity:.8; margin:0 0 20px; }
+    #apple { margin:20px auto; display:inline-block; min-height:48px; }
+    #card { margin:20px auto; max-width:520px; }
+    #msg { margin-top:16px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.9; }
     .hidden { display:none; }
-    .disabled { opacity:.5; pointer-events:none; }
   </style>
 </head>
 <body>
 <div id="wrap">
   <h1>Pro Access</h1>
-  <p>Fast, secure checkout. Apple Pay when available.</p>
-
+  <p>Pay quickly and securely with Apple Pay.</p>
   <div id="apple"></div>
-  <div id="or" class="hidden">or pay with card</div>
-
   <div id="card" class="hidden">
     <div id="payment-element"></div>
-    <button id="card-pay" class="action disabled">Pay</button>
+    <button id="card-pay" class="hidden">Pay</button>
   </div>
-
-  <div id="msg"></div>
+  <pre id="msg"></pre>
 </div>
 
 <script>
+/* ------------- ultra-verbose logger ------------- */
+const log = (...args) => { console.log("[AP DEBUG]", ...args); document.querySelector("#msg").textContent += args.map(a => typeof a === "object" ? JSON.stringify(a,null,2) : String(a)).join(" ") + "\n"; };
+window.onerror = (m,s,l,c,e)=>log("window.onerror", m, s+":"+l, e&&e.stack?e.stack:e);
+window.addEventListener("unhandledrejection", e=>log("unhandledrejection", e.reason));
+
 (async () => {
-  // ================== YOUR CONFIG ==================
-  const PUBLISHABLE_KEY       = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
+  // ==== YOUR CONFIG ====
+  const PUBLISHABLE_KEY    = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
+  const SETUP_INTENT_URL   = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
+  const CREATE_SUB_URL     = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
+  const SUCCESS_RETURN_URL = "https://yourdomain.com/checkout_redirect/success"; // replace in prod
+  // =====================
 
-  // 1) SetupIntent endpoint (get clientSecret to DISPLAY Apple Pay / setup PM)
-  const SETUP_INTENT_URL      = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
-
-  // 2) Create Subscription endpoint (called AFTER setup succeeds)
-  const CREATE_SUB_URL        = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
-
-  // 3) Universal link to bounce back into your app on success
-  const SUCCESS_RETURN_URL    = "https://yourdomain.com/checkout_redirect/success"; // TODO: replace
-
-  // =================================================
-
-  // Params from the app (e.g., ?userId=...&sub_type=weekly&isDiscounted=false&email=...)
   const url          = new URL(window.location.href);
   const userId       = url.searchParams.get("userId") || "";
-  const sub_type     = url.searchParams.get("sub_type") || "weekly"; // "weekly" | "annual"
+  const sub_type     = url.searchParams.get("sub_type") || "weekly";
   const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
   const emailParam   = url.searchParams.get("email") || "";
 
-  const setMsg = (t) => (document.querySelector("#msg").textContent = t || "");
+  const setMsg = t => { document.querySelector("#msg").textContent = (t || "") + "\n"; };
+  setMsg("Preparing Apple Pay…");
 
-  // ---- Step 1: fetch SetupIntent client secret so we can present Apple Pay / Payment Element ----
-  setMsg("Preparing checkout…");
+  // Environment diagnostics
+  log("location", window.location.href);
+  log("protocol", window.location.protocol);
+  log("top-level", window.top === window.self);
+  log("userAgent", navigator.userAgent);
+  log("platform", navigator.platform);
+  log("isSecureContext", isSecureContext);
 
+  // 1) Fetch SetupIntent client secret
   let clientSecret = "";
   try {
-    const body = { userId }; // your setup endpoint only needs userId per your spec
-    const res  = await fetch(SETUP_INTENT_URL, {
+    const body = { userId };
+    log("POST SETUP_INTENT_URL body:", body);
+    const res = await fetch(SETUP_INTENT_URL, {
       method: "POST",
       headers: { "Content-Type":"application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body)
     });
-
     const text = await res.text();
+    log("SETUP status:", res.status, "raw:", text);
     let json = {};
-    try { json = JSON.parse(text); } catch (e) {
-      throw new Error(`Non-JSON response (${res.status}): ${text.slice(0, 300)}`);
-    }
-    if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
-    if (!json.clientSecret) throw new Error(`No clientSecret in response. Got: ${text.slice(0, 300)}`);
-
-    clientSecret = json.clientSecret; // <-- SetupIntent client secret
+    try { json = JSON.parse(text); } catch (e) { throw new Error("SetupIntent non-JSON: " + text.slice(0,200)); }
+    if (!res.ok) throw new Error(json.error || ("HTTP " + res.status));
+    if (!json.clientSecret) throw new Error("No clientSecret in setup response");
+    clientSecret = json.clientSecret;
+    log("clientSecret (setup):", clientSecret.substring(0,20) + "…");
   } catch (e) {
-    console.error(e);
-    setMsg(e.message);
+    log("SetupIntent fetch error:", e.message);
+    setMsg("Could not prepare Apple Pay.\n" + e.message);
     return;
   }
 
-  // ---- Step 2: Initialize Stripe Elements in SETUP mode (since we have a SetupIntent secret) ----
-  setMsg("");
+  // 2) Init Stripe in SETUP mode
   const stripe   = Stripe(PUBLISHABLE_KEY);
-  const elements = stripe.elements({ clientSecret }); // puts Elements in "setup" context
+  log("Stripe.js version:", stripe.version || "n/a");
+  const elements = stripe.elements({ clientSecret });
 
-  // Card fallback (Payment Element in setup mode)
-  const paymentElement = elements.create("payment", { layout: "tabs" });
-  paymentElement.mount("#payment-element");
-  document.querySelector("#card").classList.remove("hidden");
-  document.querySelector("#or").classList.remove("hidden");
-  document.querySelector("#card-pay").classList.remove("disabled");
-
-  // ---- Step 2a: Apple Pay via Payment Request Button (for SETUP) ----
+  // 3) Build PRB for Apple Pay
   const pr = stripe.paymentRequest({
     country: "US",
     currency: "usd",
-    total: { label: "Pro Access", amount: 0 }, // ignored for setup
+    total: { label: "Pro Access", amount: 0 },
     requestPayerEmail: true
   });
 
-  const canPay = await pr.canMakePayment();
-  if (canPay && (canPay.applePay || canPay.applePay === true)) {
-    const prButton = elements.create("paymentRequestButton", {
-      paymentRequest: pr,
-      style: { paymentRequestButton: { type: "applePay" } }
-    });
-    prButton.mount("#apple");
-
-    // On tap: confirm the SETUP (collect & verify PM), then call create-subscription
-    pr.on("paymentmethod", async (ev) => {
-      try {
-        setMsg("Authorizing…");
-        const setupRes = await stripe.confirmCardSetup(clientSecret, {
-          payment_method: ev.paymentMethod.id,
-          payment_method_data: {
-            billing_details: { email: ev.payerEmail || emailParam || undefined }
-          },
-          // If SCA/redirect were ever needed for setup, this is where it would go:
-          // (Apple Pay usually won't need it, but it's fine to provide)
-          // Also okay to omit; Stripe will still manage in-browser flows.
-          // confirmParams: { return_url: SUCCESS_RETURN_URL }
-        });
-
-        if (setupRes.error) {
-          ev.complete("fail");
-          setMsg(setupRes.error.message || "Failed to set up payment method.");
-          return;
-        }
-
-        ev.complete("success");
-
-        const pmId = setupRes.setupIntent.payment_method || ev.paymentMethod.id;
-        await createSubscriptionAndRedirect(pmId);
-      } catch (e) {
-        console.error(e);
-        ev.complete("fail");
-        setMsg(e.message || "Failed to set up payment method.");
-      }
-    });
-  } else {
-    document.querySelector("#apple").classList.add("hidden");
+  let canPay;
+  try {
+    canPay = await pr.canMakePayment();
+    log("canMakePayment() →", canPay);
+  } catch (e) {
+    log("canMakePayment error:", e.message);
   }
 
-  // ---- Step 2b: Card fallback button (confirm SETUP via Payment Element) ----
-  document.querySelector("#card-pay").addEventListener("click", async () => {
+  const appleDiv = document.getElementById("apple");
+  const cardDiv  = document.getElementById("card");
+  const showApple = () => { appleDiv.classList.remove("hidden"); log("SHOW Apple Pay"); };
+  const hideApple = () => { appleDiv.classList.add("hidden"); log("HIDE Apple Pay"); };
+  const showCard  = () => { cardDiv.classList.remove("hidden"); log("SHOW Card fallback"); };
+  const hideCard  = () => { cardDiv.classList.add("hidden"); log("HIDE Card fallback"); };
+
+  // IMPORTANT: Only show card if Apple Pay is NOT available
+  if (canPay && (canPay.applePay || canPay.applePay === true)) {
+    // Mount PRB
+    try {
+      const prButton = elements.create("paymentRequestButton", {
+        paymentRequest: pr,
+        style: { paymentRequestButton: { type: "applePay" } }
+      });
+      prButton.on('ready', ()=>log("PRB ready"));
+      prButton.mount("#apple");
+      showApple();
+      hideCard(); // force-hide card if some later code tries to show it
+      setMsg(""); // clear
+    } catch (e) {
+      log("PRB mount error:", e.message);
+      hideApple();
+      showCard();
+    }
+  } else {
+    // Apple Pay not available: show card UI (if you actually want a fallback)
+    hideApple();
+    showCard();
+  }
+
+  // 4) Handle Apple Pay tap → confirm SetupIntent → create subscription → redirect
+  pr.on("paymentmethod", async (ev) => {
+    log("PRB paymentmethod event:", { pm: ev.paymentMethod && ev.paymentMethod.id, email: ev.payerEmail });
     try {
       setMsg("Authorizing…");
-      const { error, setupIntent } = await stripe.confirmSetup({
-        elements,
-        clientSecret,
-        confirmParams: {
-          // Provide a return_url in case 3DS/next actions are needed:
-          return_url: SUCCESS_RETURN_URL
+      const setupRes = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: ev.paymentMethod.id,
+        payment_method_data: {
+          billing_details: { email: ev.payerEmail || emailParam || undefined }
         }
       });
+      log("confirmCardSetup result:", setupRes);
 
-      if (error) {
-        setMsg(error.message || "Failed to set up payment method.");
+      if (setupRes.error) {
+        ev.complete("fail");
+        setMsg(setupRes.error.message || "Apple Pay authorization failed.");
+        log("confirmCardSetup error:", setupRes.error);
         return;
       }
 
-      const pmId = setupIntent.payment_method;
-      await createSubscriptionAndRedirect(pmId);
-    } catch (e) {
-      console.error(e);
-      setMsg(e.message || "Failed to set up payment method.");
-    }
-  });
+      ev.complete("success");
+      const paymentMethodId = (setupRes.setupIntent && setupRes.setupIntent.payment_method) || (ev.paymentMethod && ev.paymentMethod.id);
+      log("Using paymentMethodId:", paymentMethodId);
 
-  // ---- Step 3: helper to call your CREATE SUBSCRIPTION Lambda, then redirect ----
-  async function createSubscriptionAndRedirect(paymentMethodId) {
-    try {
       setMsg("Creating subscription…");
       const payload = {
         paymentMethodId,
         userId,
-        email: emailParam || "",
+        email: ev.payerEmail || emailParam || "",
         sub_type,
         isDiscounted
       };
+      log("POST CREATE_SUB_URL body:", payload);
 
-      const res = await fetch(CREATE_SUB_URL, {
+      const subRes = await fetch(CREATE_SUB_URL, {
         method: "POST",
         headers: { "Content-Type":"application/json" },
         body: JSON.stringify(payload)
       });
 
-      const text = await res.text();
-      let json = {};
-      try { json = JSON.parse(text); } catch (_) {}
-      if (!res.ok || json.error) {
-        throw new Error(json.error || `Create subscription failed (${res.status}): ${text.slice(0, 300)}`);
+      const subText = await subRes.text();
+      log("CREATE_SUB status:", subRes.status, "raw:", subText);
+      let subJson = {};
+      try { subJson = JSON.parse(subText); } catch (_) {}
+      if (!subRes.ok || subJson.error) {
+        throw new Error(subJson.error || ("Create subscription failed (" + subRes.status + ")"));
       }
 
-      const subscriptionId = json.subscriptionId || "";
+      const sid = subJson.subscriptionId || "";
+      log("Subscription created:", sid);
+
       const redirect = new URL(SUCCESS_RETURN_URL);
       redirect.searchParams.set("userId", userId);
       redirect.searchParams.set("sub_type", sub_type);
-      redirect.searchParams.set("sid", subscriptionId);
+      if (sid) redirect.searchParams.set("sid", sid);
+      log("Redirecting to:", redirect.toString());
       window.location.href = redirect.toString();
+
     } catch (e) {
-      console.error(e);
-      setMsg(e.message || "Subscription creation failed.");
+      log("PRB handler error:", e.message);
+      setMsg(e.message || "Something went wrong.");
     }
+  });
+
+  // 5) OPTIONAL: Card fallback (kept hidden unless Apple Pay unavailable)
+  try {
+    const paymentElement = elements.create("payment", { layout: "tabs" });
+    paymentElement.mount("#payment-element");
+    log("Payment Element mounted (hidden unless Apple Pay unavailable)");
+  } catch (e) {
+    log("Payment Element mount error:", e.message);
   }
+
 })();
 </script>
 </body>
