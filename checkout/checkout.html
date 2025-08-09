@@ -2,39 +2,48 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v12</title>
+  <title>Start Free Trial — v13</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
-    :root { color-scheme: light dark; }
+    :root { color-scheme: light; }
     html, body { height: 100%; }
     body {
       margin: 0;
       font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Roboto, Arial;
-      background: radial-gradient(1200px 600px at 50% -200px, rgba(0,0,0,0.08), transparent 70%) #f4f7fb;
+      background: #eef3f8;
       color: #0b1324;
       -webkit-font-smoothing: antialiased;
     }
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
     .card {
-      width: 100%; max-width: 420px; background: #fff; border-radius: 20px;
-      box-shadow: 0 20px 60px rgba(17,24,39,.15), 0 2px 6px rgba(17,24,39,.05);
-      padding: 28px 22px 18px; text-align: center;
+      width: 100%; max-width: 520px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow:
+        0 32px 90px rgba(17, 24, 39, 0.18),
+        0 4px 10px rgba(17, 24, 39, 0.06);
+      padding: 26px 26px 18px;
+      text-align: center;
     }
     h1 { font-size: 22px; margin: 0 0 10px; font-weight: 800; }
-    h2 { font-size: 18px; margin: 18px 0 6px; font-weight: 800; }
-    p  { margin: 0 0 8px; color: #48506a; line-height: 1.45; font-size: 15px; }
+    h2 { font-size: 18px; margin: 18px 0 10px; font-weight: 800; }
+    p  { margin: 0; color: #4c5875; line-height: 1.45; font-size: 15px; }
+    p + p { margin-top: 6px; }
 
-    /* Apple Pay button host */
+    /* Apple Pay button host (transparent; Stripe draws inside the iframe) */
     #applePayBtn {
-      margin: 16px auto 6px;
+      margin: 18px auto 8px;
       width: 100%;
+      max-width: 420px;
       height: 56px;
       border-radius: 14px;
-      background: #000; /* ensures crisp edge on white */
       display: block;
       overflow: hidden;
+      position: relative;
+      background: transparent; /* important: let Stripe art show */
     }
+    /* Make Stripe iframe fill host neatly */
     #applePayBtn > iframe {
       width: 100% !important;
       height: 100% !important;
@@ -42,21 +51,40 @@
       border: 0;
       border-radius: 14px;
     }
-    small.meta { display:block; margin-top: 6px; color:#8a93a8; font-size: 12px; }
 
-    /* unavailable message */
-    #unavailable { display:none; color:#8a93a8; text-align:center; font-size:14px; }
+    /* Loading shimmer while PRB mounts */
+    .skeleton {
+      position: absolute; inset: 0; border-radius: 14px; overflow: hidden;
+      background: #0b0b0b; opacity: .06;
+    }
+    .skeleton::after {
+      content: ""; position: absolute; inset: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.06) 50%, rgba(0,0,0,0) 100%);
+      transform: translateX(-100%); animation: shimmer 1.2s infinite;
+    }
+    @keyframes shimmer { to { transform: translateX(100%); } }
 
-    /* version badge */
+    /* Caption under button */
+    .meta {
+      margin-top: 6px;
+      color:#8a93a8;
+      font-size: 12px;
+      user-select: none;
+    }
+
+    /* Unavailable msg */
+    #unavailable { display:none; color:#6b7280; font-size:14px; text-align:center; margin-top: 8px; }
+
+    /* Version badge */
     #ver {
       position: fixed; top: 10px; right: 12px;
-      background: rgba(0,0,0,0.7); color: #0ff; font-size: 12px;
-      padding: 4px 8px; border-radius: 6px; font-weight: 700;
+      background: rgba(0,0,0,0.7); color: #0ff;
+      font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 700;
     }
   </style>
 </head>
 <body>
-<div id="ver">v12</div>
+<div id="ver">v13</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -66,23 +94,25 @@
     <h2>What happens next?</h2>
     <p>Once you’re done, we’ll take you right back to the app.<br/>You’ll have thousands of fans waiting for you.</p>
 
-    <!-- Apple Pay button lives here -->
-    <div id="applePayBtn" aria-label="Start Free Trial with Apple&nbsp;Pay"></div>
-    <small class="meta">Start Free Trial</small>
-  </div>
+    <!-- Apple Pay button host -->
+    <div id="applePayBtn" aria-label="Start Free Trial with Apple Pay">
+      <div class="skeleton" id="skeleton"></div>
+    </div>
+    <div class="meta">Start Free Trial</div>
 
-  <div id="unavailable">Apple&nbsp;Pay isn’t available on this device or browser.</div>
+    <div id="unavailable">Apple Pay isn’t available on this device or browser.</div>
+  </div>
 </div>
 
 <script>
 (async () => {
-  // ----- Your config -----
+  // ---- Config (your endpoints/keys) ----
   const PUBLISHABLE_KEY = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
-  const SETUP_INTENT_URL = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/"; // returns { clientSecret }
-  const CREATE_SUB_URL   = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/"; // returns { subscriptionId }
+  const SETUP_INTENT_URL = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
+  const CREATE_SUB_URL   = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
   const SUCCESS_URL      = "https://parallellive.app/checkout_redirect/success";
 
-  // URL params (optional but supported)
+  // Optional params
   const url = new URL(location.href);
   const userId       = url.searchParams.get("userId") || "";
   const sub_type     = url.searchParams.get("sub_type") || "weekly";
@@ -90,14 +120,12 @@
   const emailParam   = url.searchParams.get("email") || "";
 
   const showUnavailable = (msg) => {
-    document.getElementById("card").style.display = "none";
-    const el = document.getElementById("unavailable");
-    el.style.display = "block";
-    if (msg) el.textContent = msg;
+    document.getElementById("unavailable").style.display = "block";
+    if (msg) document.getElementById("unavailable").textContent = msg;
   };
 
   try {
-    // 1) Create SetupIntent on your backend (web-only flow)
+    // 1) Create SetupIntent on your backend
     const res = await fetch(SETUP_INTENT_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -107,7 +135,7 @@
     if (!res.ok || !json.clientSecret) throw new Error(json.error || "No clientSecret");
     const clientSecret = json.clientSecret;
 
-    // 2) Init Stripe + Elements (setup mode)
+    // 2) Init Stripe
     const stripe   = Stripe(PUBLISHABLE_KEY);
     const elements = stripe.elements({ clientSecret });
 
@@ -121,37 +149,35 @@
     const availability = await pr.canMakePayment().catch(() => null);
     if (!availability || !availability.applePay) {
       showUnavailable("Apple Pay isn’t available on this device.");
+      document.getElementById("skeleton").style.display = "none";
       return;
     }
 
-    // 4) Mount the Apple Pay button (black, rounded; height matches container)
+    // 4) Mount Stripe's Apple Pay button (let Stripe paint it)
     const prb = elements.create("paymentRequestButton", {
       paymentRequest: pr,
       style: { paymentRequestButton: { type: "applePay", theme: "dark", height: "56px" } }
     });
+
+    prb.on("ready", () => {
+      // hide loading shimmer when the iframe is painted
+      document.getElementById("skeleton").style.display = "none";
+    });
+
     prb.mount("#applePayBtn");
 
-    // 5) Handle Apple Pay → confirm SetupIntent → create subscription → redirect
+    // 5) Handle Apple Pay flow
     pr.on("paymentmethod", async (ev) => {
       try {
         const confirm = await stripe.confirmCardSetup(clientSecret, {
           payment_method: ev.paymentMethod.id,
           payment_method_data: { billing_details: { email: ev.payerEmail || emailParam || undefined } }
         });
-        if (confirm.error) {
-          ev.complete("fail");
-          return;
-        }
+        if (confirm.error) { ev.complete("fail"); return; }
         ev.complete("success");
 
         const paymentMethodId = confirm.setupIntent?.payment_method || ev.paymentMethod.id;
-        const payload = {
-          paymentMethodId,
-          userId,
-          email: ev.payerEmail || emailParam || "",
-          sub_type,
-          isDiscounted
-        };
+        const payload = { paymentMethodId, userId, email: ev.payerEmail || emailParam || "", sub_type, isDiscounted };
 
         const subRes  = await fetch(CREATE_SUB_URL, {
           method: "POST",
@@ -170,12 +196,12 @@
 
       } catch (e) {
         console.error("Apple Pay flow error:", e);
-        // Keep the page visible; user can retry
       }
     });
 
   } catch (e) {
     console.error(e);
+    document.getElementById("skeleton").style.display = "none";
     showUnavailable("We couldn’t start Apple Pay. Please try again.");
   }
 })();
