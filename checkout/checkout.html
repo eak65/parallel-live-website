@@ -2,37 +2,45 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Subscribe with Apple Pay</title>
+  <title>Subscribe with Apple Pay — DEBUG</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
     :root { color-scheme: dark; }
+    html, body { height: 100%; }
     body { font-family:-apple-system, system-ui, Arial; margin:0; padding:24px; background:#0b0b0b; color:#fff; }
-    #wrap { max-width:520px; margin:0 auto; text-align:center; }
+    #wrap { max-width:560px; margin:0 auto; text-align:center; }
     h1 { font-size:22px; margin:0 0 8px; }
     p  { opacity:.85; margin:0 0 18px; }
-    /* Make sure the PRB has space and can't collapse */
-    #apple { display:block; margin:24px auto; width:100%; max-width:420px; min-height:56px; }
+    /* PRB container: make it impossible to collapse or hide */
+    #apple {
+      display:block; width:100%; max-width:480px; min-height:64px;
+      margin:24px auto; padding:8px;
+      background:rgba(0, 200, 255, .08);
+      outline:2px dashed #0af; outline-offset:4px;
+      position:relative; z-index:9999;
+    }
     /* On-page log */
     #msg { margin-top:16px; white-space:pre-wrap; text-align:left; font-size:13px; opacity:.95; }
-    .banner { position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:9999 }
+    /* Banner if we detect in-app browser/SFSafariVC/iframe/http */
+    .banner { position:fixed; left:0; right:0; bottom:0; background:#111; color:#fff; padding:12px; text-align:center; z-index:10000 }
     .banner a { color:#0af; text-decoration:underline }
   </style>
 </head>
 <body>
 <div id="wrap">
   <h1>Pro Access</h1>
-  <p>Apple Pay only — no card fields.</p>
+  <p>Apple Pay only — no card fields. All logs shown below.</p>
   <div id="apple"></div>
   <pre id="msg"></pre>
 </div>
 
 <script>
-/* ===== Ultra-verbose logger ===== */
+/* ===== Ultra-verbose logger (console + on-page) ===== */
 const log = (...a) => {
-  console.log("[AP ONLY]", ...a);
-  const line = a.map(x => typeof x === "object" ? JSON.stringify(x, null, 2) : String(x)).join(" ");
-  document.querySelector("#msg").textContent += line + "\n";
+  console.log("[AP DEBUG]", ...a);
+  const s = a.map(x => typeof x === "object" ? JSON.stringify(x, null, 2) : String(x)).join(" ");
+  document.querySelector("#msg").textContent += s + "\n";
 };
 window.onerror = (m, s, l, c, e) => log("window.onerror", m, s+":"+l, e && e.stack ? e.stack : e);
 window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.reason));
@@ -71,7 +79,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
   // Environment probes
   log("host", location.host, "https", location.protocol === "https:", "top-level", top === self);
   log("UA", navigator.userAgent);
-  log("ApplePaySession exists:", !!window.ApplePaySession, 
+  log("ApplePaySession exists:", !!window.ApplePaySession,
       "native canMakePayments:", window.ApplePaySession?.canMakePayments?.());
 
   // 1) Fetch SetupIntent to collect a PaymentMethod
@@ -99,7 +107,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
   // 2) Init Stripe (setup mode) + Payment Request Button (Apple Pay)
   const stripe   = Stripe(PUBLISHABLE_KEY);
   log("Stripe.js version", stripe.version || "n/a");
-  const elements = stripe.elements({ clientSecret }); // setup-mode is important
+  const elements = stripe.elements({ clientSecret }); // setup-mode is key
 
   const pr = stripe.paymentRequest({
     country: "US",
@@ -118,17 +126,57 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
     return;
   }
 
-  // Make sure the container has height before mounting
+  // Make the container very visible and on top
   const container = document.getElementById("apple");
-  container.style.minHeight = "56px";
-  container.style.width = "100%";
+  Object.assign(container.style, {
+    minHeight: "64px",
+    width: "100%",
+    maxWidth: "480px",
+    margin: "24px auto",
+    background: "rgba(0, 200, 255, 0.08)",
+    outline: "2px dashed #0af",
+    outlineOffset: "4px",
+    position: "relative",
+    zIndex: "9999"
+  });
 
   const btn = elements.create("paymentRequestButton", {
     paymentRequest: pr,
-    style: { paymentRequestButton: { type: "applePay" } } // default style; visible on dark bg
+    style: { paymentRequestButton: { type: "applePay" } } // default, visible on dark bg
   });
   btn.on("ready", () => log("PRB ready"));
-  try { btn.mount("#apple"); log("PRB mounted"); } catch(e) { log("PRB mount error", e.message); return; }
+
+  try {
+    btn.mount("#apple");
+    log("PRB mounted");
+  } catch(e) {
+    log("PRB mount error", e.message);
+    return;
+  }
+
+  // ---- Post-mount diagnostics (layout / iframe presence) ----
+  setTimeout(() => {
+    const rect = container.getBoundingClientRect();
+    const ifr  = container.querySelector("iframe");
+    const cs   = getComputedStyle(container);
+    log("Container rect", rect);
+    log("Container styles", {
+      display: cs.display, visibility: cs.visibility, opacity: cs.opacity,
+      position: cs.position, zIndex: cs.zIndex, transform: cs.transform,
+      overflow: cs.overflow
+    });
+    log("Child nodes", container.childNodes.length);
+    log("Stripe iframe present?", !!ifr, ifr && { w: ifr.offsetWidth, h: ifr.offsetHeight });
+    if (ifr) {
+      // Try to ensure it isn't clipped by a parent
+      let p = container.parentElement, hop = 0;
+      while (p && hop++ < 4) {
+        const pcs = getComputedStyle(p);
+        log(`Parent[${hop}]`, { tag: p.tagName, overflow: pcs.overflow, position: pcs.position, zIndex: pcs.zIndex });
+        p = p.parentElement;
+      }
+    }
+  }, 350);
 
   // 3) On Apple Pay tap → confirm SetupIntent → create subscription → redirect
   pr.on("paymentmethod", async (ev) => {
@@ -153,7 +201,7 @@ window.addEventListener("unhandledrejection", e => log("unhandledrejection", e.r
       const paymentMethodId = setupRes.setupIntent?.payment_method || ev.paymentMethod.id;
       log("Using paymentMethodId", paymentMethodId);
 
-      // Call your create-subscription API
+      // Create subscription
       const payload = {
         paymentMethodId,
         userId,
