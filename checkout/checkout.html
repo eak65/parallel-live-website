@@ -342,11 +342,17 @@
     } else if (sub_type === "annual" || sub_type === "yearly") {
       const price = isDiscounted ? 3499 : 6999; // $34.99 or $69.99 in cents
       displayItems = [
-        { label: "Annual Subscription", amount: price },
-        { label: "7-Day Free Trial", amount: -price }
+        { label: "Annual Subscription", amount: price }
       ];
-      totalAmount = 0;
-      totalLabel = isDiscounted ? "Free Trial (Then $34.99/year)" : "Free Trial (Then $69.99/year)";
+      totalAmount = price;
+      totalLabel = "Annual Subscription";
+      
+      // Display total due today for annual subscriptions
+      if (!totalDueParam) {
+        const priceDisplay = isDiscounted ? "$34.99" : "$69.99";
+        totalAmountP.textContent = `Total Due Today: ${priceDisplay}`;
+        totalDueDiv.classList.remove('hidden');
+      }
     } else {
       // Default case
       displayItems = [
