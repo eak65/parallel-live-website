@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v15</title>
+  <title>Start Free Trial — v16</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -144,7 +144,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v15</div>
+<div id="ver">v16</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -334,18 +334,28 @@
       debugLog("Payment Request Button ready");
       document.getElementById("skeleton").style.display = "none";
       
-      // Force visibility of the Stripe button
-      const iframe = document.querySelector("#applePayBtn iframe");
-      if (iframe) {
-        iframe.style.display = "block";
-        iframe.style.visibility = "visible";
-        iframe.style.opacity = "1";
-        debugLog("Stripe iframe found and made visible");
-      } else {
-        debugLog("No Stripe iframe found - checking for other elements");
-        const allChildren = document.querySelectorAll("#applePayBtn *");
-        debugLog(`Found ${allChildren.length} child elements in button container`);
-      }
+      // Check what Stripe actually created
+      setTimeout(() => {
+        const container = document.getElementById("applePayBtn");
+        const iframe = container.querySelector("iframe");
+        const allChildren = container.querySelectorAll("*");
+        
+        debugLog(`Container children count: ${allChildren.length}`);
+        debugLog(`Iframe found: ${!!iframe}`);
+        
+        if (iframe) {
+          debugLog(`Iframe src: ${iframe.src}`);
+          debugLog(`Iframe dimensions: ${iframe.offsetWidth}x${iframe.offsetHeight}`);
+          debugLog(`Iframe visibility: ${getComputedStyle(iframe).visibility}`);
+          debugLog(`Iframe display: ${getComputedStyle(iframe).display}`);
+        }
+        
+        // If no visible content, show fallback
+        if (!iframe || iframe.offsetHeight === 0) {
+          debugLog("Stripe button not visible - showing fallback");
+          document.getElementById("fallbackBtn").style.display = "flex";
+        }
+      }, 1000);
     });
 
     prButton.on("click", (event) => {
