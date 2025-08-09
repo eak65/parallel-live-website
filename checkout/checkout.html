@@ -365,7 +365,9 @@
       currency: "usd",
       total: { label: totalLabel, amount: totalAmount },
       displayItems: displayItems,
-      requestPayerEmail: true
+      requestPayerEmail: true,
+      // Override button text
+      buttonType: 'default'
     });
 
     console.log("Checking Apple Pay availability...");
