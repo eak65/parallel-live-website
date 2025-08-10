@@ -65,6 +65,26 @@
       background: #0284c7;
     }
     
+    /* Debug info display */
+    .debug-info {
+      margin: 20px 0;
+      padding: 16px;
+      background: #f3f4f6;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 12px;
+      text-align: left;
+      color: #374151;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .debug-info .debug-line {
+      margin: 4px 0;
+      padding: 2px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
     .loading-dots {
       display: inline-block;
       position: relative;
@@ -144,6 +164,10 @@
     <button class="app-button" id="appButton" style="display: none;" onclick="openApp()">
       Return to App
     </button>
+    
+    <div class="debug-info" id="debugInfo">
+      <div class="debug-line"><strong>Debug Information:</strong></div>
+    </div>
   </div>
 </div>
 
@@ -154,15 +178,33 @@
   const subscriptionId = urlParams.get('sid');
   const userId = urlParams.get('userId');
   
-  console.log('Success page loaded:', { forceApp, subscriptionId, userId });
-  
   let redirectAttempted = false;
   
+  // Debug logging function
+  function debugLog(message) {
+    console.log(message);
+    const debugDiv = document.getElementById('debugInfo');
+    const newLine = document.createElement('div');
+    newLine.className = 'debug-line';
+    newLine.textContent = new Date().toLocaleTimeString() + ': ' + message;
+    debugDiv.appendChild(newLine);
+    debugDiv.scrollTop = debugDiv.scrollHeight;
+  }
+  
+  debugLog('Success page loaded');
+  debugLog('forceApp = ' + forceApp);
+  debugLog('subscriptionId = ' + subscriptionId);
+  debugLog('userId = ' + userId);
+  debugLog('Current URL = ' + window.location.href);
+  
   function attemptAppRedirect() {
-    if (redirectAttempted) return;
+    if (redirectAttempted) {
+      debugLog('Redirect already attempted, skipping');
+      return;
+    }
     redirectAttempted = true;
     
-    console.log('Attempting app redirect...');
+    debugLog('Starting app redirect attempt...');
     
     // Create the universal link URL
     const currentUrl = new URL(window.location.href);
@@ -170,27 +212,28 @@
     if (forceApp === 'true') {
       // Try universal link first
       currentUrl.searchParams.set('forceApp', 'attempted');
-      console.log('Trying universal link redirect...');
+      debugLog('Trying universal link redirect to: ' + currentUrl.toString());
       window.location.href = currentUrl.toString();
       
       // Fallback to custom URL scheme after 2 seconds
       setTimeout(() => {
-        console.log('Trying custom URL scheme fallback...');
+        debugLog('Universal link timeout, trying custom URL scheme...');
         const customUrl = `parallel://checkout_success?sid=${subscriptionId || ''}&userId=${userId || ''}`;
+        debugLog('Custom URL: ' + customUrl);
         window.location.href = customUrl;
       }, 2000);
       
     } else if (forceApp === 'attempted') {
       // We've already tried the automatic redirect, show manual option
-      console.log('Automatic redirect attempted, showing manual button');
+      debugLog('Automatic redirect was attempted, showing manual button');
       document.getElementById('message').textContent = 'Tap the button below to return to the app:';
       document.getElementById('loadingIndicator').style.display = 'none';
       document.getElementById('appButton').style.display = 'block';
     } else {
       // Normal web user, try universal link naturally
+      debugLog('Normal web user flow, showing manual option after delay');
       setTimeout(() => {
-        console.log('Natural universal link attempt...');
-        // For users coming from web, this should work normally
+        debugLog('Showing manual return button');
         document.getElementById('message').textContent = 'Tap the button below to return to the app:';
         document.getElementById('loadingIndicator').style.display = 'none';
         document.getElementById('appButton').style.display = 'block';
@@ -199,31 +242,37 @@
   }
   
   function openApp() {
+    debugLog('Manual app open button clicked');
+    
     // Try both universal link and custom scheme
     const currentUrl = new URL(window.location.href);
     currentUrl.searchParams.delete('forceApp');
     
-    console.log('Manual app open - trying universal link:', currentUrl.toString());
+    debugLog('Trying universal link: ' + currentUrl.toString());
     window.location.href = currentUrl.toString();
     
     // Fallback to custom scheme after 1 second
     setTimeout(() => {
-      console.log('Manual app open - trying custom scheme...');
+      debugLog('Manual universal link timeout, trying custom scheme...');
       const customUrl = `parallel://checkout_success?sid=${subscriptionId || ''}&userId=${userId || ''}`;
+      debugLog('Manual custom URL: ' + customUrl);
       window.location.href = customUrl;
     }, 1000);
     
     // If nothing works, show message
     setTimeout(() => {
+      debugLog('All redirect attempts failed');
       document.getElementById('message').textContent = 'If the app didn\'t open, please close this browser and return to the app manually.';
     }, 3000);
   }
   
   // Start the redirect process
   if (forceApp) {
+    debugLog('forceApp parameter detected, starting redirect in 500ms...');
     // Small delay to let the page load completely
     setTimeout(attemptAppRedirect, 500);
   } else {
+    debugLog('No forceApp parameter, using regular flow');
     // Regular web user flow
     attemptAppRedirect();
   }
