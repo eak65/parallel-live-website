@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Payment Successful - Parallel Live</title>
+  <title>Success! - Parallel Live</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: light; }
@@ -128,7 +128,7 @@
       </svg>
     </div>
     
-    <h1>Payment Successful!</h1>
+    <h1>Success!</h1>
     <p>Welcome to Parallel Live Premium!</p>
     <p id="message">Redirecting you back to the app...</p>
     
@@ -168,12 +168,18 @@
     const currentUrl = new URL(window.location.href);
     
     if (forceApp === 'true') {
-      // Update the parameter to indicate we've tried the redirect
+      // Try universal link first
       currentUrl.searchParams.set('forceApp', 'attempted');
-      
-      // Force a page reload to trigger universal link
-      console.log('Forcing page reload for universal link...');
+      console.log('Trying universal link redirect...');
       window.location.href = currentUrl.toString();
+      
+      // Fallback to custom URL scheme after 2 seconds
+      setTimeout(() => {
+        console.log('Trying custom URL scheme fallback...');
+        const customUrl = `parallel://checkout_success?sid=${subscriptionId || ''}&userId=${userId || ''}`;
+        window.location.href = customUrl;
+      }, 2000);
+      
     } else if (forceApp === 'attempted') {
       // We've already tried the automatic redirect, show manual option
       console.log('Automatic redirect attempted, showing manual button');
@@ -193,16 +199,21 @@
   }
   
   function openApp() {
+    // Try both universal link and custom scheme
     const currentUrl = new URL(window.location.href);
-    // Remove forceApp parameter for clean universal link
     currentUrl.searchParams.delete('forceApp');
     
-    console.log('Manual app open attempt:', currentUrl.toString());
-    
-    // Try to open the app
+    console.log('Manual app open - trying universal link:', currentUrl.toString());
     window.location.href = currentUrl.toString();
     
-    // If the app doesn't open within 3 seconds, show fallback
+    // Fallback to custom scheme after 1 second
+    setTimeout(() => {
+      console.log('Manual app open - trying custom scheme...');
+      const customUrl = `parallel://checkout_success?sid=${subscriptionId || ''}&userId=${userId || ''}`;
+      window.location.href = customUrl;
+    }, 1000);
+    
+    // If nothing works, show message
     setTimeout(() => {
       document.getElementById('message').textContent = 'If the app didn\'t open, please close this browser and return to the app manually.';
     }, 3000);
