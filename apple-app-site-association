@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "VASSKNJ7GB.com.bigbrains.parallel",
+        "paths": [
+          "/checkout_redirect/*",
+          "/app/*"
+        ]
+      }
+    ]
+  }
+}
