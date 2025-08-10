@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v28</title>
+  <title>Start Free Trial — v29</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -179,7 +179,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v28</div>
+<div id="ver">v29</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -396,11 +396,12 @@
         }
       }
 
-      // 4) Redirect to success
+      // 4) Redirect to success with force parameter
       const redirectUrl = new URL(SUCCESS_URL);
       if (subscriptionId) redirectUrl.searchParams.set("sid", subscriptionId);
       redirectUrl.searchParams.set("userId", userId);
       redirectUrl.searchParams.set("sub_type", sub_type);
+      redirectUrl.searchParams.set("forceApp", "true");
       
       console.log("Success! Redirecting to:", redirectUrl.toString());
       
