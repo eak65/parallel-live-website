@@ -38,8 +38,11 @@
     }
     .cta {
       margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .cta a {
+    .cta a:not(.support-text a) {
       background-color: #9147ff;
       color: white;
       padding: 15px 30px;
@@ -47,9 +50,25 @@
       text-decoration: none;
       font-size: 1.1em;
       display: inline-block;
+      margin: 5px;
     }
-    .cta a:hover {
+    .cta a:not(.support-text a):hover {
       background-color: #7e3ff2;
+    }
+    .portal-btn {
+      background-color: #333 !important;
+    }
+    .portal-btn:hover {
+      background-color: #555 !important;
+    }
+    .support-text {
+      margin-top: 15px;
+      font-size: 0.9em;
+      color: #aaa;
+    }
+    .support-text a {
+      color: #aaa;
+      text-decoration: underline;
     }
     footer {
       margin-top: 80px;
@@ -81,11 +100,13 @@
     <p>Parallel Live lets you go live with thousands of AI-generated viewers reacting in real-time. Create the illusion of viral popularity and build confidence while entertaining your audience.</p>
     <div class="cta">
       <a href="https://parallellive.onelink.me/WOuo/f2uh7nn5?fbclid=PAZXh0bgNhZW0CMTEAAaYrXNT4UaVdOxwul2jJzw29MOgueFnnMSL_RmD1iErjOKBomHDoVaQwlJQ_aem_bDN_751zLm8gWsQzIs1gbQ">Download Now</a>
+      <a href="https://billing.stripe.com/p/login/aFa6oHf3TgtjbYRftv3VC00" class="portal-btn">Customer Portal</a>
+      <div class="support-text">If you can't remember which email you used, please contact support and we will help you.<br />
+        Email <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a> for all questions and support.</div>
     </div>
   </section>
   <footer>
-    &copy; 2025 Big Brains LLC. All rights reserved. <br />
-    Email <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a> for all questions and support.
+    &copy; 2025 Big Brains LLC. All rights reserved.
   </footer>
 </body>
 </html>
