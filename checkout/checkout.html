@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v32</title>
+  <title>Start Free Trial — v33</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -107,7 +107,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v32</div>
+<div id="ver">v33</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -149,9 +149,8 @@
   const CREATE_SUB_URL   = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
 
   // Universal Link path must match AASA (/checkout_redirect/*)
-  const SUCCESS_URL_UL   = "https://parallellive.app/checkout_redirect/success";
-  // Custom scheme fallback (registered in CFBundleURLTypes with "parallellive")
-  const SCHEME_BASE      = "parallellive://checkout/success";
+  const SUCCESS_URL_UL = "https://parallellive.app/checkout_redirect/success";
+  // NOTE: No custom scheme fallback in this build (UL-only on press)
 
   // Get URL parameters
   const url = new URL(location.href);
@@ -170,7 +169,6 @@
   const returnBtn = document.getElementById("returnBtn");
   const statusSuccess = document.getElementById("statusSuccess");
 
-  // Show total due if provided
   if (totalDueParam) {
     totalAmountP.textContent = totalDueParam;
     totalDueDiv.classList.remove('hidden');
@@ -199,13 +197,8 @@
   let stripe, paymentRequest, clientSecret;
 
   // Initialize Stripe
-  try {
-    stripe = Stripe(PUBLISHABLE_KEY);
-  } catch (error) {
-    console.error("Failed to initialize Stripe:", error);
-    showStatus("Failed to initialize payment system", "error");
-    return;
-  }
+  try { stripe = Stripe(PUBLISHABLE_KEY); }
+  catch (error) { console.error("Failed to initialize Stripe:", error); showStatus("Failed to initialize payment system", "error"); return; }
 
   // Core payment flow
   const handlePayment = async (paymentMethod, payerEmail) => {
@@ -260,7 +253,7 @@
       const subscriptionId = subJson.subscriptionId;
       if (!subscriptionId) throw new Error("No subscription ID returned from server");
 
-      // 4) Success UI + single "Return to App" button (no auto-redirect)
+      // 4) Success UI (UL-only on press)
       showSuccessChrome();
 
       const q = new URLSearchParams({
@@ -271,7 +264,6 @@
       }).toString();
 
       const universalLink = `${SUCCESS_URL_UL}?${q}`;
-      const schemeURL     = `${SCHEME_BASE}?${q}`;
 
       statusSuccess.textContent = "Ready to return to the app.";
       statusSuccess.classList.remove('hidden');
@@ -280,21 +272,20 @@
       returnBtn.onclick = (e) => {
         e.preventDefault();
 
-        // If the app opens, this page will background.
-        let opened = false;
-        const vis = () => { if (document.hidden) opened = true; };
-        document.addEventListener('visibilitychange', vis, { once: true });
+        // Detect handoff (page backgrounds if the app opens)
+        let handedOff = false;
+        const onVis = () => { if (document.hidden) handedOff = true; };
+        document.addEventListener('visibilitychange', onVis, { once: true });
 
-        // 1) Try custom scheme first (quick; stays on page if it fails)
-        window.location.href = schemeURL;
+        // Try Universal Link ONLY, in a new tab, so this page stays put if it opens the website
+        window.open(universalLink, '_blank', 'noopener');
 
-        // 2) After a short delay, open Universal Link in a NEW TAB as backup
+        // Optional UX hint if nothing happened
         setTimeout(() => {
-          if (!opened) {
-            window.open(universalLink, '_blank', 'noopener');
+          if (!handedOff) {
             statusSuccess.textContent = "If the app didn’t open, switch back here and tap again.";
           }
-        }, 800);
+        }, 1200);
       };
 
     } catch (error) {
@@ -306,7 +297,6 @@
 
   // Initialize Payment Request (Apple Pay)
   try {
-    // Summary items by sub_type
     let displayItems = [];
     let totalAmount = 0;
     let totalLabel = "Start Free Trial";
