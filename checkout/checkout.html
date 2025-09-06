@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v33</title>
+  <title>Start Free Trial — v34</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -60,6 +60,8 @@
       justify-content: center;
       gap: 8px;
       transition: background-color 0.2s ease;
+      text-decoration: none;              /* no underline */
+      -webkit-tap-highlight-color: transparent;
     }
     .fallback-button:hover { background: #333; }
     .fallback-button:active { background: #555; transform: scale(0.98); }
@@ -107,7 +109,7 @@
   </style>
 </head>
 <body>
-<div id="ver">v33</div>
+<div id="ver">v34</div>
 
 <div class="wrap">
   <div class="card" id="card">
@@ -125,16 +127,18 @@
       </button>
     </div>
 
-    <h1>Why are we in a browser?</h1>
-    <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
+    <!-- Why-section wrapped so we can hide it cleanly on success -->
+    <div id="whyBlock">
+      <h1>Why are we in a browser?</h1>
+      <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
 
-    <h2>What happens next?</h2>
-    <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
+      <h2>What happens next?</h2>
+      <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
+    </div>
 
     <div id="successView" class="success-view hidden">
-      <div class="success-message">Success! Welcome to Parallel Live.</div>
+      <div class="success-message" id="successMsg">Success!</div>
       <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
-      <div id="statusSuccess" class="status info hidden">Ready to return to the app.</div>
     </div>
 
     <div id="status"></div>
@@ -150,7 +154,6 @@
 
   // Universal Link path must match AASA (/checkout_redirect/*)
   const SUCCESS_URL_UL = "https://parallellive.app/checkout_redirect/success";
-  // NOTE: No custom scheme fallback in this build (UL-only on press)
 
   // Get URL parameters
   const url = new URL(location.href);
@@ -159,7 +162,9 @@
   const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
   const emailParam = url.searchParams.get("email") || "";
   const totalDueParam = url.searchParams.get("totalDue") || "";
+  const styleMode = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
 
+  // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
   const fallbackButton = document.getElementById("fallbackBtn");
   const statusDiv = document.getElementById("status");
@@ -167,8 +172,10 @@
   const totalAmountP = document.getElementById("totalAmount");
   const successView = document.getElementById("successView");
   const returnBtn = document.getElementById("returnBtn");
-  const statusSuccess = document.getElementById("statusSuccess");
+  const successMsg = document.getElementById("successMsg");
+  const whyBlock = document.getElementById("whyBlock");
 
+  // Show total due if provided
   if (totalDueParam) {
     totalAmountP.textContent = totalDueParam;
     totalDueDiv.classList.remove('hidden');
@@ -181,10 +188,12 @@
   };
 
   const showSuccessChrome = () => {
+    // Hide payment UI
     totalDueDiv.style.display = 'none';
     document.querySelector('.payment-container').style.display = 'none';
-    document.querySelector('h1').style.display = 'none';
-    document.querySelectorAll('h2, p').forEach(el => el.style.display = 'none');
+    // Hide the why/explanation block entirely
+    if (whyBlock) whyBlock.style.display = 'none';
+
     statusDiv.style.display = 'none';
     successView.classList.remove('hidden');
   };
@@ -197,8 +206,13 @@
   let stripe, paymentRequest, clientSecret;
 
   // Initialize Stripe
-  try { stripe = Stripe(PUBLISHABLE_KEY); }
-  catch (error) { console.error("Failed to initialize Stripe:", error); showStatus("Failed to initialize payment system", "error"); return; }
+  try {
+    stripe = Stripe(PUBLISHABLE_KEY);
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
+    showStatus("Failed to initialize payment system", "error");
+    return;
+  }
 
   // Core payment flow
   const handlePayment = async (paymentMethod, payerEmail) => {
@@ -253,7 +267,7 @@
       const subscriptionId = subJson.subscriptionId;
       if (!subscriptionId) throw new Error("No subscription ID returned from server");
 
-      // 4) Success UI (UL-only on press)
+      // 4) Success UI (message depends on style)
       showSuccessChrome();
 
       const q = new URLSearchParams({
@@ -265,28 +279,27 @@
 
       const universalLink = `${SUCCESS_URL_UL}?${q}`;
 
-      statusSuccess.textContent = "Ready to return to the app.";
-      statusSuccess.classList.remove('hidden');
+      if (styleMode === 0) {
+        // SFSafariViewController inside the app
+        successMsg.textContent = "Success! You can now press done and return to the app.";
+        returnBtn.classList.add('hidden'); // no button here
+      } else {
+        // External browser
+        successMsg.textContent = "Success! You can now return to the app. Tap the button below.";
+        returnBtn.classList.remove('hidden');
+        returnBtn.onclick = (e) => {
+          e.preventDefault();
 
-      returnBtn.classList.remove('hidden');
-      returnBtn.onclick = (e) => {
-        e.preventDefault();
+          // Detect handoff (page backgrounds if the app opens)
+          let handedOff = false;
+          const onVis = () => { if (document.hidden) handedOff = true; };
+          document.addEventListener('visibilitychange', onVis, { once: true });
 
-        // Detect handoff (page backgrounds if the app opens)
-        let handedOff = false;
-        const onVis = () => { if (document.hidden) handedOff = true; };
-        document.addEventListener('visibilitychange', onVis, { once: true });
-
-        // Try Universal Link ONLY, in a new tab, so this page stays put if it opens the website
-        window.open(universalLink, '_blank', 'noopener');
-
-        // Optional UX hint if nothing happened
-        setTimeout(() => {
-          if (!handedOff) {
-            statusSuccess.textContent = "If the app didn’t open, switch back here and tap again.";
-          }
-        }, 1200);
-      };
+          // Universal Link ONLY, open in new tab so this page stays put if it hits the website
+          window.open(universalLink, '_blank', 'noopener');
+          // No extra text under button per request
+        };
+      }
 
     } catch (error) {
       console.error("Payment error:", error);
@@ -297,6 +310,7 @@
 
   // Initialize Payment Request (Apple Pay)
   try {
+    // Summary items by sub_type
     let displayItems = [];
     let totalAmount = 0;
     let totalLabel = "Start Free Trial";
