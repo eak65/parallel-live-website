@@ -148,9 +148,9 @@
 <script>
 (async () => {
   // ---- Config ----
-  const PUBLISHABLE_KEY = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
-  const SETUP_INTENT_URL = "https://rkwv6kbjm3d6bmpmwc4h2p6ppe0wvgth.lambda-url.us-east-1.on.aws/";
-  const CREATE_SUB_URL   = "https://kr57xusgm2fufauejxnxwfq72q0sctva.lambda-url.us-east-1.on.aws/";
+  const PUBLISHABLE_KEY = "pk_live_51ObAxXDRnH8DK8R59oQGKkDQdgHE0ZR6kSH73IrrRV7L9aagRrL6i2CXxNWDge47dAbyhkfyShngOjfVFXsP6Dp300afVGLiB6";
+  const SETUP_INTENT_URL = "https://iklqyrk23vk2pdvvhsf6xdcpcy0nrhig.lambda-url.us-east-1.on.aws/";
+  const CREATE_SUB_URL   = "https://5mtyyuxank5ngl5gmdcw5ptfym0pnjrg.lambda-url.us-east-1.on.aws/";
 
   // Universal Link path must match AASA (/checkout_redirect/*)
   const SUCCESS_URL_UL = "https://parallellive.app/checkout_redirect/success";
@@ -281,7 +281,7 @@
 
       if (styleMode === 0) {
         // SFSafariViewController inside the app
-        successMsg.textContent = "Success! You can now press done and return to the app.";
+        successMsg.textContent = "Success! You can now press \"done\" on the top left and return to the app.";
         returnBtn.classList.add('hidden'); // no button here
       } else {
         // External browser
@@ -321,7 +321,7 @@
         { label: "7-Day Free Trial", amount: -999 }
       ];
       totalAmount = 0;
-      totalLabel = "Free Trial (Then $9.99/week)";
+      totalLabel = "Free Trial (We'll send you a reminder)";
     } else if (sub_type === "annual" || sub_type === "yearly") {
       const price = isDiscounted ? 3499 : 6999; // cents
       displayItems = [{ label: "Annual Subscription", amount: price }];
