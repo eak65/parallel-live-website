@@ -252,7 +252,7 @@
         email: payerEmail || emailParam || "",
         sub_type,
         isDiscounted,
-        lookup_id: product_id
+        lookup_key: product_id
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
