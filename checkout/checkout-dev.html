@@ -163,6 +163,7 @@
   const emailParam = url.searchParams.get("email") || "";
   const totalDueParam = url.searchParams.get("totalDue") || "";
   const styleMode = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
+  const product_id = url.searchParams.get("product_id") || ""; 
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
@@ -250,7 +251,8 @@
         userId,
         email: payerEmail || emailParam || "",
         sub_type,
-        isDiscounted
+        isDiscounted,
+        lookup_id: product_id
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
