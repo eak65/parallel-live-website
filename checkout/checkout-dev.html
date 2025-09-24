@@ -205,12 +205,14 @@
   // Get URL parameters
   const url = new URL(location.href);
   const userId = url.searchParams.get("userId") || "";
-  const sub_type = url.searchParams.get("sub_type") || "weekly";
-  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true";
+  const sub_type = (url.searchParams.get("sub_type") || "Subscription").trim(); // pretty text provided by caller
+  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true"; // kept if your backend uses it
   const emailParam = url.searchParams.get("email") || "";
   const totalDueParam = url.searchParams.get("totalDue") || "";
   const styleMode = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
   const product_id = url.searchParams.get("product_id") || ""; 
+  const amount = Number.parseInt(url.searchParams.get("amount") || "0", 10); // integer cents
+  const freetrial = url.searchParams.get("freetrial") === "true";            // boolean
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
@@ -223,7 +225,12 @@
   const successMsg = document.getElementById("successMsg");
   const whyBlock = document.getElementById("whyBlock");
 
-  // Show total due if provided
+  // Money formatter
+  const fmtUSD = (cents) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+      .format((cents || 0) / 100);
+
+  // Show total due if provided; otherwise we will compute later once totals are known
   if (totalDueParam) {
     totalAmountP.textContent = totalDueParam;
     totalDueDiv.classList.remove('hidden');
@@ -359,30 +366,28 @@
 
   // Initialize Payment Request (Apple Pay)
   try {
-    // Summary items by sub_type
+    // Build summary using amount (cents), freetrial (boolean), and sub_type (pretty label)
     let displayItems = [];
-    let totalAmount = 0;
+    let totalAmount = amount;      // cents
     let totalLabel = "Start Free Trial";
 
-    if (sub_type === "weekly") {
+    if (freetrial) {
       displayItems = [
-        { label: "Weekly Subscription", amount: 999 },
-        { label: "7-Day Free Trial", amount: -999 }
+        { label: sub_type, amount: amount },
+        { label: "3-Day Free Trial", amount: -amount }
       ];
       totalAmount = 0;
       totalLabel = "Free Trial (We'll send you a reminder)";
-    } else if (sub_type === "annual" || sub_type === "yearly") {
-      const price = isDiscounted ? 3499 : 6999; // cents
-      displayItems = [{ label: "Annual Subscription", amount: price }];
-      totalAmount = price;
-      totalLabel = "Annual Subscription";
-      if (!totalDueParam) {
-        const priceDisplay = isDiscounted ? "$34.99" : "$69.99";
-        totalAmountP.textContent = `Total Due Today: ${priceDisplay}`;
-        totalDueDiv.classList.remove('hidden');
-      }
     } else {
-      displayItems = [{ label: "Subscription", amount: 0 }];
+      displayItems = [{ label: sub_type, amount }];
+      totalAmount = amount;
+      totalLabel = sub_type;
+    }
+
+    // If no explicit totalDue provided, show computed total
+    if (!totalDueParam) {
+      totalAmountP.textContent = `Total Due Today: ${fmtUSD(totalAmount)}`;
+      totalDueDiv.classList.remove('hidden');
     }
 
     paymentRequest = stripe.paymentRequest({
