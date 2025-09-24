@@ -1,0 +1,417 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Start Free Trial — v34</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    :root { color-scheme: light; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, system-ui, "Segoe UI", Roboto, Arial;
+      background: #eef3f8;
+      color: #0b1324;
+      -webkit-font-smoothing: antialiased;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .logo-container img {
+      max-width: 180px;
+      height: auto;
+    }
+    .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+    .card {
+      width: 100%; max-width: 520px;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow:
+        0 32px 90px rgba(17, 24, 39, 0.18),
+        0 4px 10px rgba(17, 24, 39, 0.06);
+      padding: 26px 26px 18px;
+      text-align: center;
+    }
+    h1 { font-size: 22px; margin: 0 0 10px; font-weight: 800; }
+    h2 { font-size: 18px; margin: 18px 0 10px; font-weight: 800; }
+    p  { margin: 0; color: #4c5875; line-height: 1.45; font-size: 15px; }
+    p + p { margin-top: 6px; }
+
+    .payment-container {
+      margin: 18px auto 8px;
+      width: 100%;
+      max-width: 420px;
+      height: 56px;
+      position: relative;
+    }
+
+    #payment-request-button {
+      width: 100% !important;
+      height: 56px !important;
+      border-radius: 14px !important;
+    }
+
+    .fallback-button {
+      width: 100%;
+      height: 56px;
+      background: #000;
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background-color 0.2s ease;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fallback-button:hover { background: #333; }
+    .fallback-button:active { background: #555; transform: scale(0.98); }
+
+    .apple-logo { width: 20px; height: 24px; fill: white; }
+
+    .loading { opacity: 0.7; cursor: not-allowed; }
+
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+    }
+    .status.success { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+    .status.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .status.info    { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+
+    .hidden { display: none !important; }
+
+    .success-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      position: relative;
+      gap: 12px;
+    }
+    .success-message {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0b1324;
+      text-align: center;
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    .legal {
+      font-size: 11px;
+      color: #6b7280;
+      margin: 24px auto 0;
+      max-width: 520px;
+      text-align: left;
+      line-height: 1.4;
+    }
+    .legal p { margin: 0 0 12px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card" id="card">
+    <div class="logo-container">
+      <img src="logo.png" alt="Company Logo">
+    </div>
+
+    <div id="totalDue" class="hidden">
+      <h1 id="totalAmount"></h1>
+    </div>
+
+    <div class="payment-container">
+      <div id="payment-request-button" class="hidden"></div>
+      <button class="fallback-button hidden" id="fallbackBtn">
+        <svg class="apple-logo" viewBox="0 0 24 24">
+          <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+        </svg>
+        Start Free Trial
+      </button>
+    </div>
+
+    <div>
+      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
+    </div>
+
+    <div id="whyBlock">
+      <h1>Why are we in a browser?</h1>
+      <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
+
+      <h2>What happens next?</h2>
+      <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
+    </div>
+
+    <div id="successView" class="success-view hidden">
+      <div class="success-message" id="successMsg">Success!</div>
+      <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
+    </div>
+
+    <div id="status"></div>
+  </div>
+
+  <footer class="legal">
+    <p><strong>Terms of Service</strong></p>
+    <p><strong>Refund Policy.</strong><br>
+      When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users (“credits”). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
+      Unless otherwise specified in these Terms of Service or required under the applicable law in your jurisdiction Digital Content and any other digital goods are not returnable after purchase.
+    </p>
+    <p><strong>Cancellation of Subscription Services.</strong><br>
+      You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app “Customer Portal”. From the Customer Portal, you may manage and cancel your Subscription Service.<br>
+      Big Brain may terminate your Subscription Service by providing notice through the Big Brain Services.<br>
+      All questions and concerns related to renewal payments for purchases or for any other inquiries, you may contact Big Brain directly at <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>.<br>
+      Any cancellation by either party pursuant to this section shall be effective at the end of the then-current billing period, and you will continue to have access to the Subscription Services until the conclusion of such billing period.
+    </p>
+  </footer>
+</div>
+
+<script>
+(async () => {
+  // ---- Config ----
+  const PUBLISHABLE_KEY = "pk_live_51ObAxXDRnH8DK8R59oQGKkDQdgHE0ZR6kSH73IrrRV7L9aagRrL6i2CXxNWDge47dAbyhkfyShngOjfVFXsP6Dp300afVGLiB6";
+  const SETUP_INTENT_URL = "https://iklqyrk23vk2pdvvhsf6xdcpcy0nrhig.lambda-url.us-east-1.on.aws/";
+  const CREATE_SUB_URL   = "https://5mtyyuxank5ngl5gmdcw5ptfym0pnjrg.lambda-url.us-east-1.on.aws/";
+
+  // Universal Link path must match AASA (/checkout_redirect/*)
+  const SUCCESS_URL_UL = "https://parallellive.app/checkout_redirect/success";
+
+  // Get URL parameters
+  const url = new URL(location.href);
+  const userId     = url.searchParams.get("userId") || "";
+  const sub_type   = (url.searchParams.get("sub_type") || "Subscription").trim(); // pretty label
+  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true"; // kept for backend payload compatibility
+  const emailParam = url.searchParams.get("email") || "";
+  const totalDueParam = url.searchParams.get("totalDue") || "";
+  const styleMode  = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
+  const product_id = url.searchParams.get("product_id") || "";
+  const amount     = Number.parseInt(url.searchParams.get("amount") || "0", 10); // integer cents
+  const freetrial  = url.searchParams.get("freetrial") === "true";               // boolean
+
+  // Elements
+  const paymentRequestButtonDiv = document.getElementById("payment-request-button");
+  const fallbackButton = document.getElementById("fallbackBtn");
+  const statusDiv     = document.getElementById("status");
+  const totalDueDiv   = document.getElementById("totalDue");
+  const totalAmountP  = document.getElementById("totalAmount");
+  const successView   = document.getElementById("successView");
+  const returnBtn     = document.getElementById("returnBtn");
+  const successMsg    = document.getElementById("successMsg");
+  const whyBlock      = document.getElementById("whyBlock");
+
+  // Money formatter
+  const fmtUSD = (cents) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+      .format((cents || 0) / 100);
+
+  // Show total due if provided
+  if (totalDueParam) {
+    totalAmountP.textContent = totalDueParam;
+    totalDueDiv.classList.remove('hidden');
+  }
+
+  const showStatus = (message, type = 'info') => {
+    statusDiv.className = `status ${type}`;
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+  };
+
+  const showSuccessChrome = () => {
+    // Hide payment UI
+    totalDueDiv.style.display = 'none';
+    document.querySelector('.payment-container').style.display = 'none';
+    if (whyBlock) whyBlock.style.display = 'none';
+    statusDiv.style.display = 'none';
+    successView.classList.remove('hidden');
+  };
+
+  // Platform sniff (best-effort)
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+
+  let stripe, paymentRequest, clientSecret;
+
+  // Initialize Stripe
+  try {
+    stripe = Stripe(PUBLISHABLE_KEY);
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
+    showStatus("Failed to initialize payment system", "error");
+    return;
+  }
+
+  // Core payment flow
+  const handlePayment = async (paymentMethod, payerEmail) => {
+    try {
+      showStatus("Processing payment...", "info");
+
+      // 1) SetupIntent
+      if (!clientSecret) {
+        const setupResponse = await fetch(SETUP_INTENT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId })
+        });
+        if (!setupResponse.ok) {
+          const errorText = await setupResponse.text();
+          throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
+        }
+        const setupJson = await setupResponse.json();
+        clientSecret = setupJson.clientSecret;
+        if (!clientSecret) throw new Error("No client secret received");
+      }
+
+      // 2) Confirm setup
+      const confirmResult = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: paymentMethod.id
+      });
+      if (confirmResult.error) throw new Error(confirmResult.error.message);
+
+      showStatus("Creating subscription...", "info");
+
+      // 3) Create subscription on your server
+      const paymentMethodId = confirmResult.setupIntent?.payment_method || paymentMethod.id;
+      const payload = {
+        paymentMethodId,
+        userId,
+        email: payerEmail || emailParam || "",
+        sub_type,
+        isDiscounted,
+        lookup_key: product_id
+      };
+
+      const subResponse = await fetch(CREATE_SUB_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!subResponse.ok) {
+        const errorText = await subResponse.text();
+        throw new Error(`Subscription API error: ${subResponse.status} - ${errorText}`);
+      }
+      const subJson = await subResponse.json();
+      if (subJson.error) throw new Error(subJson.error);
+      const subscriptionId = subJson.subscriptionId;
+      if (!subscriptionId) throw new Error("No subscription ID returned from server");
+
+      // 4) Success UI
+      showSuccessChrome();
+
+      const q = new URLSearchParams({
+        sid: subscriptionId,
+        userId,
+        sub_type,
+        forceApp: "true"
+      }).toString();
+
+      const universalLink = `${SUCCESS_URL_UL}?${q}`;
+
+      if (styleMode === 0) {
+        successMsg.textContent = "Success! You can now press \"done\" on the top left and return to the app.";
+        returnBtn.classList.add('hidden');
+      } else {
+        successMsg.textContent = "Success! You can now return to the app. Tap the button below.";
+        returnBtn.classList.remove('hidden');
+        returnBtn.onclick = (e) => {
+          e.preventDefault();
+          let handedOff = false;
+          const onVis = () => { if (document.hidden) handedOff = true; };
+          document.addEventListener('visibilitychange', onVis, { once: true });
+          window.open(universalLink, '_blank', 'noopener');
+        };
+      }
+
+    } catch (error) {
+      console.error("Payment error:", error);
+      showStatus(`Error: ${error.message}`, "error");
+      throw error;
+    }
+  };
+
+  // Initialize Payment Request (Apple Pay)
+  try {
+    // --- Dynamic summary using amount (cents), sub_type (pretty label), freetrial (boolean) ---
+    let displayItems = [];
+    let totalAmount = amount; // cents
+    let totalLabel = "Start Free Trial";
+
+    if (freetrial) {
+      displayItems = [
+        { label: sub_type, amount: amount },
+        { label: "Free Trial", amount: -amount }
+      ];
+      totalAmount = 0;
+      totalLabel = "Free Trial (We'll send you a reminder)";
+    } else {
+      displayItems = [{ label: sub_type, amount }];
+      totalAmount = amount;
+      totalLabel = sub_type;
+    }
+
+    // If no explicit totalDue provided, compute from amount
+    if (!totalDueParam) {
+      totalAmountP.textContent = `Total Due Today: ${fmtUSD(totalAmount)}`;
+      totalDueDiv.classList.remove('hidden');
+    }
+
+    paymentRequest = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: { label: totalLabel, amount: totalAmount },
+      displayItems,
+      requestPayerEmail: true,
+      buttonType: 'default'
+    });
+
+    const canMake = await paymentRequest.canMakePayment();
+
+    if (canMake && canMake.applePay && (isIOS || isSafari)) {
+      paymentRequest.on("paymentmethod", async (event) => {
+        try {
+          await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
+          event.complete("success");
+        } catch (error) {
+          event.complete("fail");
+        }
+      });
+
+      const elements = stripe.elements();
+      const prButton = elements.create("paymentRequestButton", {
+        paymentRequest,
+        style: { paymentRequestButton: { type: 'default', theme: 'dark', height: '56px' } }
+      });
+
+      await prButton.mount("#payment-request-button");
+      paymentRequestButtonDiv.classList.remove('hidden');
+    } else {
+      showStatus("Apple Pay not available on this device", "error");
+      const fb = document.getElementById("fallbackBtn");
+      fb.classList.remove('hidden');
+      fb.onclick = () => {
+        showStatus("Please use a device with Apple Pay support", "error");
+      };
+    }
+  } catch (error) {
+    console.error("Initialization error:", error);
+    showStatus(`Initialization error: ${error.message}`, "error");
+    const fb = document.getElementById("fallbackBtn");
+    fb.classList.remove('hidden');
+    fb.textContent = 'Payment Error';
+  }
+
+})();
+</script>
+</body>
+</html>
