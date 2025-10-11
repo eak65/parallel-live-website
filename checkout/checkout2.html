@@ -199,6 +199,9 @@
   const product_id = url.searchParams.get("product_id") || "";
   const amount     = Number.parseInt(url.searchParams.get("amount") || "0", 10); // integer cents
   const freetrial  = url.searchParams.get("freetrial") === "true";               // boolean
+  const age        = url.searchParams.get("age") || "";
+  const gender     = url.searchParams.get("gender") || "";
+  const offeringId = url.searchParams.get("offeringId") || "";
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
@@ -290,7 +293,10 @@
         email: payerEmail || emailParam || "",
         sub_type,
         isDiscounted,
-        lookup_key: product_id
+        lookup_key: product_id,
+        age,
+        gender,
+        offeringId
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {

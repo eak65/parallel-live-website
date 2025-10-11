@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Start Free Trial — v34</title>
+  <title>Parallel Live Free Trial</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://js.stripe.com/v3/"></script>
   <style>
@@ -15,15 +15,15 @@
       color: #0b1324;
       -webkit-font-smoothing: antialiased;
     }
-      .logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-.logo-container img {
-  max-width: 180px;
-  height: auto;
-}
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .logo-container img {
+      max-width: 180px;
+      height: auto;
+    }
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
     .card {
       width: 100%; max-width: 520px;
@@ -69,7 +69,7 @@
       justify-content: center;
       gap: 8px;
       transition: background-color 0.2s ease;
-      text-decoration: none;              /* no underline */
+      text-decoration: none;
       -webkit-tap-highlight-color: transparent;
     }
     .fallback-button:hover { background: #333; }
@@ -78,12 +78,6 @@
     .apple-logo { width: 20px; height: 24px; fill: white; }
 
     .loading { opacity: 0.7; cursor: not-allowed; }
-
-    #ver {
-      position: fixed; top: 10px; right: 12px;
-      background: rgba(0,0,0,0.7); color: #0ff;
-      font-size: 12px; padding: 4px 8px; border-radius: 6px; font-weight: 700;
-    }
 
     .status {
       margin-top: 16px;
@@ -115,16 +109,25 @@
       line-height: 1.5;
       padding: 20px;
     }
+
+    .legal {
+      font-size: 11px;
+      color: #6b7280;
+      margin: 24px auto 0;
+      max-width: 520px;
+      text-align: left;
+      line-height: 1.4;
+    }
+    .legal p { margin: 0 0 12px; }
   </style>
 </head>
 <body>
-<div id="ver">v34</div>
-
 <div class="wrap">
   <div class="card" id="card">
     <div class="logo-container">
-  <img src="logo.png" alt="Company Logo">
-</div>
+      <img src="logo.png" alt="Company Logo">
+    </div>
+
     <div id="totalDue" class="hidden">
       <h1 id="totalAmount"></h1>
     </div>
@@ -140,12 +143,10 @@
     </div>
     <br>
     <div>
-      <p>
-      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a> </p><p>
-      We generally respond in less than 1 hour.</p>
+      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
     </div>
     <br>
-    <!-- Why-section wrapped so we can hide it cleanly on success -->
+
     <div id="whyBlock">
       <h1>Why are we in a browser?</h1>
       <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
@@ -161,36 +162,21 @@
 
     <div id="status"></div>
   </div>
-  <!-- Add this just before the closing </body> -->
-<footer class="legal">
-  <p><strong>Terms of Service</strong></p>
-  <p><strong>Refund Policy.</strong><br>
-  When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users (“credits”). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
-  Unless otherwise specified in these Terms of Service or required under the applicable law in your jurisdiction Digital Content and any other digital goods are not returnable after purchase.
-  </p>
-  <p><strong>Cancellation of Subscription Services.</strong><br>
-  You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app “Customer Portal”. From the Customer Portal, you may manage and cancel your Subscription Service.<br>
-  Big Brain may terminate your Subscription Service by providing notice through the Big Brain Services.<br>
-  All questions and concerns related to renewal payments for purchases or for any other inquiries, you may contact Big Brain directly at <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>.<br>
-  Any cancellation by either party pursuant to this section shall be effective at the end of the then-current billing period, and you will continue to have access to the Subscription Services until the conclusion of such billing period.
-  </p>
-</footer>
 
-<style>
-  .legal {
-    font-size: 11px;
-    color: #6b7280; /* muted gray */
-    margin: 24px auto 0;
-    max-width: 520px;
-    text-align: left;
-    line-height: 1.4;
-  }
-  .legal p {
-    margin: 0 0 12px;
-  }
-</style>
+  <footer class="legal">
+    <p><strong>Terms of Service</strong></p>
+    <p><strong>Refund Policy.</strong><br>
+      When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users (“credits”). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
+      Unless otherwise specified in these Terms of Service or required under the applicable law in your jurisdiction Digital Content and any other digital goods are not returnable after purchase.
+    </p>
+    <p><strong>Cancellation of Subscription Services.</strong><br>
+      You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app “Customer Portal”. From the Customer Portal, you may manage and cancel your Subscription Service.<br>
+      Big Brain may terminate your Subscription Service by providing notice through the Big Brain Services.<br>
+      All questions and concerns related to renewal payments for purchases or for any other inquiries, you may contact Big Brain directly at <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>.<br>
+      Any cancellation by either party pursuant to this section shall be effective at the end of the then-current billing period, and you will continue to have access to the Subscription Services until the conclusion of such billing period.
+    </p>
+  </footer>
 </div>
-
 
 <script>
 (async () => {
@@ -204,33 +190,36 @@
 
   // Get URL parameters
   const url = new URL(location.href);
-  const userId = url.searchParams.get("userId") || "";
-  const sub_type = (url.searchParams.get("sub_type") || "Subscription").trim(); // pretty text provided by caller
-  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true"; // kept if your backend uses it
+  const userId     = url.searchParams.get("userId") || "";
+  const sub_type   = (url.searchParams.get("sub_type") || "Subscription").trim(); // pretty label
+  const isDiscounted = (url.searchParams.get("isDiscounted") || "false") === "true"; // kept for backend payload compatibility
   const emailParam = url.searchParams.get("email") || "";
   const totalDueParam = url.searchParams.get("totalDue") || "";
-  const styleMode = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
-  const product_id = url.searchParams.get("product_id") || ""; 
-  const amount = Number.parseInt(url.searchParams.get("amount") || "0", 10); // integer cents
-  const freetrial = url.searchParams.get("freetrial") === "true";            // boolean
+  const styleMode  = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
+  const product_id = url.searchParams.get("product_id") || "";
+  const amount     = Number.parseInt(url.searchParams.get("amount") || "0", 10); // integer cents
+  const freetrial  = url.searchParams.get("freetrial") === "true";               // boolean
+  const age        = url.searchParams.get("age") || "";
+  const gender     = url.searchParams.get("gender") || "";
+  const offeringId = url.searchParams.get("offeringId") || "";
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
   const fallbackButton = document.getElementById("fallbackBtn");
-  const statusDiv = document.getElementById("status");
-  const totalDueDiv = document.getElementById("totalDue");
-  const totalAmountP = document.getElementById("totalAmount");
-  const successView = document.getElementById("successView");
-  const returnBtn = document.getElementById("returnBtn");
-  const successMsg = document.getElementById("successMsg");
-  const whyBlock = document.getElementById("whyBlock");
+  const statusDiv     = document.getElementById("status");
+  const totalDueDiv   = document.getElementById("totalDue");
+  const totalAmountP  = document.getElementById("totalAmount");
+  const successView   = document.getElementById("successView");
+  const returnBtn     = document.getElementById("returnBtn");
+  const successMsg    = document.getElementById("successMsg");
+  const whyBlock      = document.getElementById("whyBlock");
 
   // Money formatter
   const fmtUSD = (cents) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
       .format((cents || 0) / 100);
 
-  // Show total due if provided; otherwise we will compute later once totals are known
+  // Show total due if provided
   if (totalDueParam) {
     totalAmountP.textContent = totalDueParam;
     totalDueDiv.classList.remove('hidden');
@@ -246,9 +235,7 @@
     // Hide payment UI
     totalDueDiv.style.display = 'none';
     document.querySelector('.payment-container').style.display = 'none';
-    // Hide the why/explanation block entirely
     if (whyBlock) whyBlock.style.display = 'none';
-
     statusDiv.style.display = 'none';
     successView.classList.remove('hidden');
   };
@@ -274,7 +261,7 @@
     try {
       showStatus("Processing payment...", "info");
 
-      // 1) SetupIntent (if needed)
+      // 1) SetupIntent
       if (!clientSecret) {
         const setupResponse = await fetch(SETUP_INTENT_URL, {
           method: "POST",
@@ -306,7 +293,10 @@
         email: payerEmail || emailParam || "",
         sub_type,
         isDiscounted,
-        lookup_key: product_id
+        lookup_key: product_id,
+        age,
+        gender,
+        offeringId
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
@@ -323,7 +313,7 @@
       const subscriptionId = subJson.subscriptionId;
       if (!subscriptionId) throw new Error("No subscription ID returned from server");
 
-      // 4) Success UI (message depends on style)
+      // 4) Success UI
       showSuccessChrome();
 
       const q = new URLSearchParams({
@@ -336,24 +326,17 @@
       const universalLink = `${SUCCESS_URL_UL}?${q}`;
 
       if (styleMode === 0) {
-        // SFSafariViewController inside the app
-        successMsg.textContent = "Success! You can now press done and return to the app.";
-        returnBtn.classList.add('hidden'); // no button here
+        successMsg.textContent = "Success! You can now press \"done\" on the top left and return to the app.";
+        returnBtn.classList.add('hidden');
       } else {
-        // External browser
         successMsg.textContent = "Success! You can now return to the app. Tap the button below.";
         returnBtn.classList.remove('hidden');
         returnBtn.onclick = (e) => {
           e.preventDefault();
-
-          // Detect handoff (page backgrounds if the app opens)
           let handedOff = false;
           const onVis = () => { if (document.hidden) handedOff = true; };
           document.addEventListener('visibilitychange', onVis, { once: true });
-
-          // Universal Link ONLY, open in new tab so this page stays put if it hits the website
           window.open(universalLink, '_blank', 'noopener');
-          // No extra text under button per request
         };
       }
 
@@ -366,15 +349,15 @@
 
   // Initialize Payment Request (Apple Pay)
   try {
-    // Build summary using amount (cents), freetrial (boolean), and sub_type (pretty label)
+    // --- Dynamic summary using amount (cents), sub_type (pretty label), freetrial (boolean) ---
     let displayItems = [];
-    let totalAmount = amount;      // cents
+    let totalAmount = amount; // cents
     let totalLabel = "Start Free Trial";
 
     if (freetrial) {
       displayItems = [
         { label: sub_type, amount: amount },
-        { label: "3-Day Free Trial", amount: -amount }
+        { label: "Free Trial", amount: -amount }
       ];
       totalAmount = 0;
       totalLabel = "Free Trial (We'll send you a reminder)";
@@ -384,7 +367,7 @@
       totalLabel = sub_type;
     }
 
-    // If no explicit totalDue provided, show computed total
+    // If no explicit totalDue provided, compute from amount
     if (!totalDueParam) {
       totalAmountP.textContent = `Total Due Today: ${fmtUSD(totalAmount)}`;
       totalDueDiv.classList.remove('hidden');
@@ -437,6 +420,5 @@
 
 })();
 </script>
-
 </body>
 </html>
