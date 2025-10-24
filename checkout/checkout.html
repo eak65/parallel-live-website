@@ -15,15 +15,6 @@
       color: #0b1324;
       -webkit-font-smoothing: antialiased;
     }
-      .logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16px;
-}
-.logo-container img {
-  max-width: 180px;
-  height: auto;
-}
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
     .card {
       width: 100%; max-width: 520px;
@@ -118,11 +109,10 @@
   </style>
 </head>
 <body>
+<div id="ver">v34</div>
+
 <div class="wrap">
   <div class="card" id="card">
-      <div class="logo-container">
-        <img src="logo.png" alt="Company Logo">
-      </div>
     <div id="totalDue" class="hidden">
       <h1 id="totalAmount"></h1>
     </div>
@@ -135,9 +125,6 @@
         </svg>
         Start Free Trial
       </button>
-    </div>
-    <div>
-      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
     </div>
 
     <!-- Why-section wrapped so we can hide it cleanly on success -->
@@ -156,34 +143,6 @@
 
     <div id="status"></div>
   </div>
-  <!-- Add this just before the closing </body> -->
-<footer class="legal">
-  <p><strong>Terms of Service</strong></p>
-  <p><strong>Refund Policy.</strong><br>
-  When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users (“credits”). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
-  Unless otherwise specified in these Terms of Service or required under the applicable law in your jurisdiction Digital Content and any other digital goods are not returnable after purchase.
-  </p>
-  <p><strong>Cancellation of Subscription Services.</strong><br>
-  You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app “Customer Portal”. From the Customer Portal, you may manage and cancel your Subscription Service.<br>
-  Big Brain may terminate your Subscription Service by providing notice through the Big Brain Services.<br>
-  All questions and concerns related to renewal payments for purchases or for any other inquiries, you may contact Big Brain directly at <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>.<br>
-  Any cancellation by either party pursuant to this section shall be effective at the end of the then-current billing period, and you will continue to have access to the Subscription Services until the conclusion of such billing period.
-  </p>
-</footer>
-
-<style>
-  .legal {
-    font-size: 11px;
-    color: #6b7280; /* muted gray */
-    margin: 24px auto 0;
-    max-width: 520px;
-    text-align: left;
-    line-height: 1.4;
-  }
-  .legal p {
-    margin: 0 0 12px;
-  }
-</style>
 </div>
 
 <script>
@@ -204,7 +163,6 @@
   const emailParam = url.searchParams.get("email") || "";
   const totalDueParam = url.searchParams.get("totalDue") || "";
   const styleMode = parseInt(url.searchParams.get("style") || "1", 10); // 0 = SFSafariViewController, 1 = external browser
-  const product_id = url.searchParams.get("product_id") || ""; 
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
@@ -292,8 +250,7 @@
         userId,
         email: payerEmail || emailParam || "",
         sub_type,
-        isDiscounted,
-        lookup_key: product_id
+        isDiscounted
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
@@ -361,7 +318,7 @@
     if (sub_type === "weekly") {
       displayItems = [
         { label: "Weekly Subscription", amount: 999 },
-        { label: "7-Day Free Trial", amount: -999 }
+        { label: "3-Day Free Trial", amount: -999 }
       ];
       totalAmount = 0;
       totalLabel = "Free Trial (We'll send you a reminder)";

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Parallel Live</title>
+  <title>Parallel Live — AI Companion Live-Stream Game</title>
   <style>
     body {
       margin: 0;
@@ -24,20 +24,32 @@
     }
     section.hero {
       text-align: center;
-      padding: 60px 20px;
+      padding: 60px 20px 30px;
+      max-width: 900px;
     }
     section.hero h1 {
-      font-size: 2.5em;
-      margin-bottom: 20px;
+      font-size: 2.4em;
+      margin-bottom: 14px;
+      line-height: 1.1;
     }
-    section.hero p {
-      font-size: 1.1em;
-      max-width: 600px;
-      margin: auto;
-      padding: 0 10px;
+    .subhead {
+      font-size: 1.05em;
+      color: #cfcfcf;
+      max-width: 720px;
+      margin: 0 auto 8px;
+    }
+    .disclaimer {
+      font-size: 0.95em;
+      color: #9dd49d;
+      background: rgba(157, 212, 157, 0.08);
+      border: 1px solid rgba(157, 212, 157, 0.25);
+      padding: 10px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-top: 16px;
     }
     .cta {
-      margin-top: 30px;
+      margin-top: 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -65,13 +77,83 @@
       margin-top: 15px;
       font-size: 0.9em;
       color: #aaa;
+      text-align: center;
+      max-width: 720px;
     }
     .support-text a {
       color: #aaa;
       text-decoration: underline;
     }
+
+    /* Info blocks */
+    .info {
+      max-width: 1000px;
+      padding: 20px;
+    }
+    .pill-row {
+      margin: 10px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .pill {
+      font-size: 0.85em;
+      color: #ddd;
+      background: #1f1f23;
+      border: 1px solid #2c2c33;
+      padding: 8px 12px;
+      border-radius: 999px;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .card {
+      background: #151517;
+      border: 1px solid #2b2b2f;
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 1.2em;
+    }
+    .card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #dcdcdc;
+      line-height: 1.5;
+      font-size: 0.98em;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75em;
+      letter-spacing: 0.02em;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #0f2a16;
+      border: 1px solid #1f4d2a;
+      color: #9dd49d;
+      margin-bottom: 10px;
+    }
+
+    .compliance {
+      margin-top: 26px;
+      font-size: 0.95em;
+      color: #bbb;
+      background: #121214;
+      border: 1px solid #242428;
+      border-left: 3px solid #7e3ff2;
+      padding: 12px 14px;
+      border-radius: 8px;
+    }
+
     footer {
-      margin-top: 80px;
+      margin-top: 60px;
       padding: 20px;
       text-align: center;
       color: #aaa;
@@ -81,32 +163,83 @@
       color: #aaa;
       text-decoration: underline;
     }
+
+    @media (max-width: 900px) {
+      .columns { grid-template-columns: 1fr; }
+    }
     @media (max-width: 600px) {
-      section.hero h1 {
-        font-size: 2em;
-      }
-      .cta a {
-        width: 80%;
-        padding: 15px;
-        font-size: 1em;
-      }
+      section.hero h1 { font-size: 2em; }
+      .cta a { width: 80%; padding: 15px; font-size: 1em; }
     }
   </style>
 </head>
 <body>
   <header>Parallel Live</header>
+
   <section class="hero">
-    <h1>Experience Instant Fame</h1>
-    <p>Parallel Live lets you go live with thousands of AI-generated viewers reacting in real-time. Create the illusion of viral popularity and build confidence while entertaining your audience.</p>
+    <h1>AI Companion Live-Stream <span style="white-space:nowrap;">Game</span></h1>
+    <p class="subhead">
+      Parallel Live is a <strong>single-player entertainment app</strong> where you “go live” and interact with
+      <strong>AI companions</strong> and a <strong>simulated, in-app audience</strong>. It’s role-play—fun practice for streaming,
+      storytelling, and social confidence.
+    </p>
+    <div class="disclaimer">
+      Entertainment only: simulated viewers are <em>in-app only</em> and do not affect real-world follower counts, views, or engagement on any platform.
+    </div>
+
+    <div class="pill-row">
+      <span class="pill">No social media login required</span>
+      <span class="pill">No external platform connections</span>
+      <span class="pill">No real followers sold—ever</span>
+      <span class="pill">Practice & confidence-building</span>
+    </div>
+
     <div class="cta">
       <a href="https://parallellive.onelink.me/WOuo/f2uh7nn5?fbclid=PAZXh0bgNhZW0CMTEAAaYrXNT4UaVdOxwul2jJzw29MOgueFnnMSL_RmD1iErjOKBomHDoVaQwlJQ_aem_bDN_751zLm8gWsQzIs1gbQ">Download Now</a>
       <a href="https://billing.stripe.com/p/login/aFa6oHf3TgtjbYRftv3VC00" class="portal-btn">Customer Portal</a>
-      <div class="support-text">If you can't remember which email you used, please contact support and we will help you.<br />
-        Email <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a> for all questions and support.</div>
+      <div class="support-text">
+        If you can't remember which email you used, please contact support and we will help you.<br />
+        Email <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a> for all questions and support.
+      </div>
     </div>
   </section>
+
+  <section class="info">
+    <div class="columns">
+      <div class="card">
+        <span class="badge">What Parallel Live <strong>is</strong></span>
+        <h3>Interactive role-play with AI</h3>
+        <ul>
+          <li>A self-contained game with AI companions and a simulated crowd.</li>
+          <li>Reactions, comments, and “viewers” are generated <em>inside the app</em> for entertainment.</li>
+          <li>Great for practicing streaming, improv, and public speaking.</li>
+          <li>Does not post, boost, or interact with any social media accounts.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="badge">What Parallel Live is <strong>not</strong></span>
+        <h3>No fake engagement or follower sales</h3>
+        <ul>
+          <li>We do <strong>not</strong> sell followers, likes, views, or engagement.</li>
+          <li>We do <strong>not</strong> connect to or manipulate external platforms.</li>
+          <li>We do <strong>not</strong> provide social growth or marketing services.</li>
+          <li>All audience activity is fictional and remains within the game.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="compliance">
+      <strong>Compliance note for payment processors:</strong>
+      Parallel Live is an <em>entertainment application</em> featuring a simulated, in-app audience. It does not provide,
+      sell, or facilitate real-world followers, likes, views, or engagement on any third-party platform, nor does it
+      connect to or automate actions on external social networks. All interactions are fictional and confined to gameplay.
+    </div>
+  </section>
+
   <footer>
     &copy; 2025 Big Brains LLC. All rights reserved.
+    &nbsp;•&nbsp; <a href="mailto:support@bigbraintech.ai">Contact Support</a>
   </footer>
 </body>
 </html>
