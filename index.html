@@ -57,6 +57,7 @@
         .logo img {
             height: 40px;
             width: auto;
+            border-radius: 10px;
         }
 
         .nav-links {
@@ -377,6 +378,56 @@
             line-height: 1.6;
         }
 
+        /* Product Showcase Section */
+        .product-showcase {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .showcase-item {
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .showcase-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .showcase-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .showcase-item:hover .showcase-image {
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .showcase-item h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .showcase-item p {
+            color: #64748b;
+            line-height: 1.6;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -463,6 +514,15 @@
             .section-title {
                 font-size: 2rem;
             }
+
+            .showcase-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .showcase-image {
+                max-width: 250px;
+            }
         }
 
         /* Smooth scrolling */
@@ -492,7 +552,7 @@
     <header>
         <nav class="container">
             <div class="logo">
-                <img src="logo.png" alt="Parallel Live Logo">
+                <img src="logo.webp" alt="Parallel Live Logo">
                 Parallel Live
             </div>
             <ul class="nav-links">
@@ -553,6 +613,30 @@
                     <div class="feature-icon">📊</div>
                     <h3>Performance Insights</h3>
                     <p>Get valuable feedback on your streaming performance, learn what works, and improve your content strategy.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Showcase Section -->
+    <section class="product-showcase">
+        <div class="container">
+            <h2 class="section-title fade-in">See Parallel Live in Action</h2>
+            <div class="showcase-grid">
+                <div class="showcase-item fade-in">
+                    <img src="storytelling.png" alt="Improve Story Telling" class="showcase-image">
+                    <h3>Improve Story Telling</h3>
+                    <p>Practice your storytelling skills with AI audiences that respond naturally to your content. Perfect your narrative techniques in a supportive environment.</p>
+                </div>
+                <div class="showcase-item fade-in">
+                    <img src="confidence.png" alt="Build Confidence" class="showcase-image">
+                    <h3>Build Confidence</h3>
+                    <p>Overcome camera shyness and build your on-screen presence. Get encouraging feedback from AI fans as you develop your streaming confidence.</p>
+                </div>
+                <div class="showcase-item fade-in">
+                    <img src="streaming.png" alt="Practice Streaming" class="showcase-image">
+                    <h3>Practice Streaming</h3>
+                    <p>Experience realistic streaming scenarios with AI audience engagement. Learn timing, interaction, and content delivery in a safe practice environment.</p>
                 </div>
             </div>
         </div>
@@ -624,17 +708,17 @@
                 </div>
                 <div class="review-card fade-in">
                     <div class="review-stars">⭐⭐⭐⭐⭐</div>
-                    <div class="review-author">Content Creator</div>
-                    <div class="review-date">Recent</div>
-                    <div class="review-title">Perfect for Practice</div>
-                    <div class="review-text">Amazing app for building confidence before going live on real platforms. The AI fans feel so realistic and give great feedback. My kids love it too - it's completely safe for them to practice speaking and storytelling skills!</div>
+                    <div class="review-author">JG5464</div>
+                    <div class="review-date">Jan 16</div>
+                    <div class="review-title">Awesome!</div>
+                    <div class="review-text">Initially conceived as a lighthearted prank for my friends, I unexpectedly discovered this application to be exceptionally enjoyable and engaging. Notably, I was previously apprehensive about public speaking, but this application has empowered me to build my confidence in front of the camera, enabling me to initiate live streaming sessions with a diverse audience. The application's comprehensive features make it so fun and simple. Highly recommended.</div>
                 </div>
                 <div class="review-card fade-in">
                     <div class="review-stars">⭐⭐⭐⭐⭐</div>
-                    <div class="review-author">Aspiring Streamer</div>
-                    <div class="review-date">Recent</div>
-                    <div class="review-title">Confidence Booster</div>
-                    <div class="review-text">I was so nervous about streaming, but this app helped me practice in a safe environment. The AI audience is encouraging and helps you improve. Now I feel ready to start my real streaming journey!</div>
+                    <div class="review-author">Young Streamer</div>
+                    <div class="review-date">Feb 21</div>
+                    <div class="review-title">Download NOW 😊😳😊😂😭</div>
+                    <div class="review-text">This is the best app in the world! My parents won't let me go live stream just yet, so this is great practice, u don't have to pay either, but u will have to watch adds, but totally worth it! Just be patient, u can also gain followers, and earn coins and rewards, this is better than any ai live streaming app, I totally recommend it!</div>
                 </div>
             </div>
         </div>
