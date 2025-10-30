@@ -40,8 +40,78 @@
     p  { margin: 0; color: #4c5875; line-height: 1.45; font-size: 15px; }
     p + p { margin-top: 6px; }
 
+    /* Terms checkbox styles */
+    .terms-container {
+      margin: 18px auto 12px;
+      width: 100%;
+      max-width: 420px;
+      text-align: left;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+    
+    .terms-container.error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      animation: shake 0.5s ease-in-out;
+    }
+    
+    @keyframes shake {
+      0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+    }
+    
+    .checkbox-wrapper {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .checkbox-input {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      cursor: pointer;
+      accent-color: #0369a1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    
+    .checkbox-label {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #374151;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    .checkbox-label a {
+      color: #0369a1;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    
+    .checkbox-label a:hover {
+      text-decoration: underline;
+    }
+    
+    .error-message {
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 8px;
+      font-weight: 500;
+      display: none;
+    }
+    
+    .terms-container.error .error-message {
+      display: block;
+    }
+
     .payment-container {
-      margin: 18px auto 8px;
+      margin: 12px auto 8px;
       width: 100%;
       max-width: 420px;
       height: 56px;
@@ -132,6 +202,19 @@
       <h1 id="totalAmount"></h1>
     </div>
 
+    <!-- Terms of Service and Privacy Policy Checkbox -->
+    <div class="terms-container" id="termsContainer">
+      <div class="checkbox-wrapper">
+        <input type="checkbox" id="termsCheckbox" class="checkbox-input">
+        <label for="termsCheckbox" class="checkbox-label">
+          I agree to the <a href="termsofservice.html" target="_blank">Terms of Service</a> and <a href="privacy_policy.html" target="_blank">Privacy Policy</a>
+        </label>
+      </div>
+      <div class="error-message" id="termsError">
+        You must accept the Terms of Service and Privacy Policy to continue.
+      </div>
+    </div>
+
     <div class="payment-container">
       <div id="payment-request-button" class="hidden"></div>
       <button class="fallback-button hidden" id="fallbackBtn">
@@ -166,11 +249,11 @@
   <footer class="legal">
     <p><strong>Terms of Service</strong></p>
     <p><strong>Refund Policy.</strong><br>
-      When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users (“credits”). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
+      When you make a purchase on the Big Brain Services you have immediate access to, and use of, the Services you have purchased. Accordingly, except as detailed in these Terms of Service, to the extent permitted by applicable law, cancellations are not permitted after a purchase, and we do not offer any refunds, including, without limitation, fees for Subscription Services. At any time, and for any reason, we may provide a refund or other consideration to some or all of our users ("credits"). The amount and form of such credits, and the decision to provide them, are in our sole discretion. The provision of credits in one instance does not entitle you to credits in the future for similar instances, nor does it obligate us to provide credits in the future, under any circumstance. Big Brain reserves the right to modify this refund policy at any time.<br>
       Unless otherwise specified in these Terms of Service or required under the applicable law in your jurisdiction Digital Content and any other digital goods are not returnable after purchase.
     </p>
     <p><strong>Cancellation of Subscription Services.</strong><br>
-      You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app “Customer Portal”. From the Customer Portal, you may manage and cancel your Subscription Service.<br>
+      You may cancel your Subscription Service at any time through the Parallel Live mobile application. You may cancel by accessing the in-app "Customer Portal". From the Customer Portal, you may manage and cancel your Subscription Service.<br>
       Big Brain may terminate your Subscription Service by providing notice through the Big Brain Services.<br>
       All questions and concerns related to renewal payments for purchases or for any other inquiries, you may contact Big Brain directly at <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>.<br>
       Any cancellation by either party pursuant to this section shall be effective at the end of the then-current billing period, and you will continue to have access to the Subscription Services until the conclusion of such billing period.
@@ -210,9 +293,11 @@
   const totalDueDiv   = document.getElementById("totalDue");
   const totalAmountP  = document.getElementById("totalAmount");
   const successView   = document.getElementById("successView");
-  const returnBtn     = document.getElementById("returnBtn");
   const successMsg    = document.getElementById("successMsg");
   const whyBlock      = document.getElementById("whyBlock");
+  const termsCheckbox = document.getElementById("termsCheckbox");
+  const termsContainer = document.getElementById("termsContainer");
+  const termsError    = document.getElementById("termsError");
 
   // Money formatter
   const fmtUSD = (cents) =>
@@ -235,10 +320,35 @@
     // Hide payment UI
     totalDueDiv.style.display = 'none';
     document.querySelector('.payment-container').style.display = 'none';
+    document.querySelector('.terms-container').style.display = 'none';
     if (whyBlock) whyBlock.style.display = 'none';
     statusDiv.style.display = 'none';
     successView.classList.remove('hidden');
   };
+
+  // Terms validation function
+  const validateTermsAcceptance = () => {
+    if (!termsCheckbox.checked) {
+      termsContainer.classList.add('error');
+      // Scroll to terms container to make sure user sees the error
+      termsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Remove error class after animation
+      setTimeout(() => {
+        termsContainer.classList.remove('error');
+      }, 3000);
+      
+      return false;
+    }
+    return true;
+  };
+
+  // Clear error state when checkbox is clicked
+  termsCheckbox.addEventListener('change', () => {
+    if (termsCheckbox.checked) {
+      termsContainer.classList.remove('error');
+    }
+  });
 
   // Platform sniff (best-effort)
   const ua = navigator.userAgent || "";
@@ -387,6 +497,12 @@
     if (canMake && canMake.applePay && (isIOS || isSafari)) {
       paymentRequest.on("paymentmethod", async (event) => {
         try {
+          // Check terms acceptance before processing payment
+          if (!validateTermsAcceptance()) {
+            event.complete("fail");
+            return;
+          }
+          
           await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
           event.complete("success");
         } catch (error) {
@@ -407,6 +523,9 @@
       const fb = document.getElementById("fallbackBtn");
       fb.classList.remove('hidden');
       fb.onclick = () => {
+        if (!validateTermsAcceptance()) {
+          return;
+        }
         showStatus("Please use a device with Apple Pay support", "error");
       };
     }
