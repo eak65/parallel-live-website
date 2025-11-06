@@ -34,7 +34,7 @@
       box-shadow:
         0 32px 90px rgba(17, 24, 39, 0.18),
         0 4px 10px rgba(17, 24, 39, 0.06);
-      padding: 26px 26px 18px;
+      padding: 26px 20px 18px; /* reduced inner left/right */
       text-align: center;
     }
     h1 { font-size: 22px; margin: 0 0 10px; font-weight: 800; }
@@ -46,7 +46,7 @@
     .email-container {
       margin: 10px auto 12px;
       width: 100%;
-      max-width: 420px;
+      max-width: 360px;
       text-align: left;
       padding: 14px 16px 16px;
       border-radius: 12px;
@@ -87,23 +87,21 @@
       margin-top: 8px;
       font-weight: 500;
       display: none;
-      margin-bottom: 18px; /* matches front spacing */
+      margin-bottom: 18px;
     }
     .email-container.error .email-error { display: block; }
 
     /* Terms checkbox */
     .terms-container {
-      margin: 12px auto 12px;
+      margin: 12px auto 18px;
       width: 100%;
-      max-width: 420px;
+      max-width: 360px;
       text-align: left;
       padding: 16px;
       border-radius: 12px;
       background: #f8fafc;
       border: 2px solid #e2e8f0;
       transition: all 0.2s ease;
-      margin-bottom: 18px; /* matches front spacing */
-
     }
     .terms-container.error {
       background: #fef2f2;
@@ -153,7 +151,7 @@
     .payment-container {
       margin: 12px auto 8px;
       width: 100%;
-      max-width: 420px;
+      max-width: 360px;
       height: 56px;
       position: relative;
     }
@@ -182,7 +180,7 @@
     }
     .fallback-button:hover { background: #333; }
     .fallback-button:active { background: #555; transform: scale(0.98); }
-    .fallback-button[disabled] { opacity: 0.5; cursor: not-allowed; } /* NEW */
+    .fallback-button[disabled] { opacity: 0.5; cursor: not-allowed; }
 
     .apple-logo { width: 20px; height: 24px; fill: white; }
     .loading { opacity: 0.7; cursor: not-allowed; }
@@ -226,15 +224,6 @@
       text-align: left;
       line-height: 1.4;
     }
-    .email-container,
-.terms-container,
-.payment-container {
-  max-width: 360px;
-}
-.card {
-  padding: 26px 20px 18px; /* reduce card inner left/right */
-}
-
     .legal p { margin: 0 0 12px; }
   </style>
 </head>
@@ -279,10 +268,11 @@
         Start Free Trial
       </button>
     </div>
+
     <br>
-<div id="supportBlock">
-  Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
-</div>
+    <div id="supportBlock">
+      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
+    </div>
     <br>
 
     <div id="whyBlock">
@@ -293,14 +283,13 @@
       <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
     </div>
 
-<div id="successView" class="success-view hidden">
-  <div class="success-message" id="successMsg">Success!</div>
-  <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
-
-  <div class="success-support" style="margin-top:14px;font-size:14px;color:#4c5875;">
-    Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
-  </div>
-</div>
+    <div id="successView" class="success-view hidden">
+      <div class="success-message" id="successMsg">Success!</div>
+      <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
+      <div class="success-support" style="margin-top:14px;font-size:14px;color:#4c5875;">
+        Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
+      </div>
+    </div>
 
     <div id="status"></div>
   </div>
@@ -356,15 +345,39 @@
   const whyBlock      = document.getElementById("whyBlock");
   const termsCheckbox = document.getElementById("termsCheckbox");
   const termsContainer = document.getElementById("termsContainer");
-  const termsError    = document.getElementById("termsError");
   const paymentButtonOverlay = document.getElementById("payment-button-overlay");
 
   const emailContainer = document.getElementById("emailContainer");
   const emailInput = document.getElementById("emailInput");
-  const emailError = document.getElementById("emailError");
 
   // Prefill email (if provided via query)
   if (emailParam) emailInput.value = emailParam;
+
+  // --- Success persistence helpers (define once, top-level) ---
+  const successKey = `pl_checkout_success::${userId || 'anon'}`;
+
+  function renderSuccess(universalLink, messageText) {
+    if (totalDueDiv) totalDueDiv.style.display = 'none';
+    const hide = (sel) => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
+    hide('.payment-container');
+    hide('.terms-container');
+    hide('.email-container');
+    if (whyBlock) whyBlock.style.display = 'none';
+    if (statusDiv) statusDiv.style.display = 'none';
+    const supportBlock = document.getElementById("supportBlock");
+    if (supportBlock) supportBlock.style.display = 'none';
+
+    successView.classList.remove('hidden');
+    successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
+    returnBtn.classList.remove('hidden');
+
+    returnBtn.onclick = (e) => {
+      e.preventDefault();
+      window.open(universalLink, '_blank', 'noopener');
+    };
+
+    localStorage.setItem(successKey, JSON.stringify({ ts: Date.now(), ul: universalLink }));
+  }
 
   // Money formatter
   const fmtUSD = (cents) =>
@@ -382,50 +395,48 @@
     statusDiv.textContent = message;
     statusDiv.style.display = 'block';
   };
-const supportBlock = document.getElementById("supportBlock");
 
-const showSuccessChrome = () => {
-  totalDueDiv.style.display = 'none';
-  document.querySelector('.payment-container').style.display = 'none';
-  document.querySelector('.terms-container').style.display = 'none';
-  document.querySelector('.email-container').style.display = 'none';
-  if (whyBlock) whyBlock.style.display = 'none';
-  if (supportBlock) supportBlock.style.display = 'none';  // <-- hide pre-purchase support
-  statusDiv.style.display = 'none';
-  successView.classList.remove('hidden');
-};
+  // If the user already completed checkout on this device, show success immediately.
+  try {
+    const saved = JSON.parse(localStorage.getItem(successKey) || 'null');
+    if (saved && saved.ul) {
+      renderSuccess(saved.ul, 'Success! You already started your free trial. You can return to the app below.');
+      return; // skip building Apple Pay UI
+    }
+  } catch (_) {}
 
   // --- Validation helpers ---
-  const isValidEmail = (v) => {
-    const s = (v || "").trim();
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
-  };
+  const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").trim());
 
   const validateEmail = () => {
     const val = emailInput.value.trim();
-    if (!isValidEmail(val)) {
-      emailContainer.classList.add('error');
+    const ok = isValidEmail(val);
+    const ctn = document.getElementById("emailContainer");
+    const err = document.getElementById("emailError");
+    if (!ok) {
+      ctn.classList.add('error');
       emailInput.setAttribute('aria-invalid', 'true');
       emailInput.focus({ preventScroll: true });
-      emailContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return false;
+      ctn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      ctn.classList.remove('error');
+      emailInput.removeAttribute('aria-invalid');
+      if (err) err.style.display = 'none';
     }
-    emailContainer.classList.remove('error');
-    emailInput.removeAttribute('aria-invalid');
-    return true;
+    return ok;
   };
 
   const validateTermsAcceptance = () => {
-    if (!termsCheckbox.checked) {
+    const checked = termsCheckbox.checked;
+    if (!checked) {
       termsContainer.classList.add('error');
       termsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
       setTimeout(() => { termsContainer.classList.remove('error'); }, 3000);
-      return false;
     }
-    return true;
+    return checked;
   };
 
-  // ---- NEW: Gate logic (email + terms must both be OK) ----
+  // ---- Gate logic (email + terms must both be OK) ----
   const meetsRequirements = () =>
     isValidEmail(emailInput.value.trim()) && termsCheckbox.checked;
 
@@ -438,19 +449,17 @@ const showSuccessChrome = () => {
     }
   };
 
-  // Live validation
   emailInput.addEventListener('input', () => {
-    if (emailContainer.classList.contains('error') && isValidEmail(emailInput.value)) {
-      emailContainer.classList.remove('error');
+    const ctn = document.getElementById("emailContainer");
+    if (ctn.classList.contains('error') && isValidEmail(emailInput.value)) {
+      ctn.classList.remove('error');
       emailInput.removeAttribute('aria-invalid');
     }
     updateGate();
   });
 
   termsCheckbox.addEventListener('change', () => {
-    if (termsCheckbox.checked) {
-      termsContainer.classList.remove('error');
-    }
+    if (termsCheckbox.checked) termsContainer.classList.remove('error');
     updateGate();
   });
 
@@ -538,31 +547,19 @@ const showSuccessChrome = () => {
       const subscriptionId = subJson.subscriptionId;
       if (!subscriptionId) throw new Error("No subscription ID returned from server");
 
-      // 4) Success UI
-      showSuccessChrome();
-
+      // 4) Success UI + persist
       const q = new URLSearchParams({
         sid: subscriptionId,
         userId,
         sub_type,
         forceApp: "true"
       }).toString();
-
       const universalLink = `${SUCCESS_URL_UL}?${q}`;
 
       if (styleMode === 0) {
-        successMsg.textContent = "Success! You can now press \"done\" on the top left and return to the app.";
-        returnBtn.classList.add('hidden');
+        renderSuccess(universalLink, 'Success! You can now press "Done" to return to the app.');
       } else {
-        successMsg.textContent = "Success! You can now return to the app. Tap the button below.";
-        returnBtn.classList.remove('hidden');
-        returnBtn.onclick = (e) => {
-          e.preventDefault();
-          let handedOff = false;
-          const onVis = () => { if (document.hidden) handedOff = true; };
-          document.addEventListener('visibilitychange', onVis, { once: true });
-          window.open(universalLink, '_blank', 'noopener');
-        };
+        renderSuccess(universalLink, 'Success! You can now return to the app. Tap the button below.');
       }
 
     } catch (error) {
@@ -609,7 +606,6 @@ const showSuccessChrome = () => {
     if (canMake && canMake.applePay && (isIOS || isSafari)) {
       paymentRequest.on("paymentmethod", async (event) => {
         try {
-          // We still gate on the overlay, but if an event slips through, validate again
           await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
           event.complete("success");
         } catch (error) {
@@ -640,7 +636,8 @@ const showSuccessChrome = () => {
 
         // If validated, hide overlay and trigger Apple Pay button
         paymentButtonOverlay.style.display = 'none';
-        const applePayButton = document.querySelector('#payment-request-button button, #payment-request-button div[role="button"]');
+        const applePayButton =
+          document.querySelector('#payment-request-button button, #payment-request-button div[role="button"]');
         if (applePayButton) applePayButton.click();
       });
 
