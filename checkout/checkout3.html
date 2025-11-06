@@ -7,6 +7,8 @@
   <script src="https://js.stripe.com/v3/"></script>
   <style>
     :root { color-scheme: light; }
+    *, *::before, *::after { box-sizing: border-box; }
+
     html, body { height: 100%; }
     body {
       margin: 0;
@@ -224,6 +226,15 @@
       text-align: left;
       line-height: 1.4;
     }
+    .email-container,
+.terms-container,
+.payment-container {
+  max-width: 360px;
+}
+.card {
+  padding: 26px 20px 18px; /* reduce card inner left/right */
+}
+
     .legal p { margin: 0 0 12px; }
   </style>
 </head>
