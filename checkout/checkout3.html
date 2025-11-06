@@ -446,7 +446,7 @@
       const okTerms = validateTermsAcceptance();
       if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
 
-      const effectiveEmail = emailInput.value.trim() || payerEmailFromSheet || emailParam || "";
+      const effectiveEmail = emailInput.value.trim() || emailParam || "";
 
       // 1) SetupIntent
       if (!clientSecret) {
@@ -477,6 +477,7 @@
       const payload = {
         paymentMethodId,
         userId,
+        applePayEmail:payerEmailFromSheet,
         email: effectiveEmail,
         sub_type,
         isDiscounted,
