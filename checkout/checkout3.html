@@ -330,4 +330,301 @@
   const statusDiv     = document.getElementById("status");
   const totalDueDiv   = document.getElementById("totalDue");
   const totalAmountP  = document.getElementById("totalAmount");
-  const successView   = d
+  const successView   = document.getElementById("successView");
+  const successMsg    = document.getElementById("successMsg");
+  const whyBlock      = document.getElementById("whyBlock");
+  const termsCheckbox = document.getElementById("termsCheckbox");
+  const termsContainer = document.getElementById("termsContainer");
+  const termsError    = document.getElementById("termsError");
+  const paymentButtonOverlay = document.getElementById("payment-button-overlay");
+
+  const emailContainer = document.getElementById("emailContainer");
+  const emailInput = document.getElementById("emailInput");
+  const emailError = document.getElementById("emailError");
+
+  // Prefill email (if provided via query)
+  if (emailParam) emailInput.value = emailParam;
+
+  // Money formatter
+  const fmtUSD = (cents) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+      .format((cents || 0) / 100);
+
+  // Show total due if provided
+  if (totalDueParam) {
+    totalAmountP.textContent = totalDueParam;
+    totalDueDiv.classList.remove('hidden');
+  }
+
+  const showStatus = (message, type = 'info') => {
+    statusDiv.className = `status ${type}`;
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+  };
+
+  const showSuccessChrome = () => {
+    totalDueDiv.style.display = 'none';
+    document.querySelector('.payment-container').style.display = 'none';
+    document.querySelector('.terms-container').style.display = 'none';
+    document.querySelector('.email-container').style.display = 'none';
+    if (whyBlock) whyBlock.style.display = 'none';
+    statusDiv.style.display = 'none';
+    successView.classList.remove('hidden');
+  };
+
+  // --- Validation helpers ---
+  const isValidEmail = (v) => {
+    const s = (v || "").trim();
+    // lightweight but strict enough for UI blocking
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
+  };
+
+  const validateEmail = () => {
+    const val = emailInput.value.trim();
+    if (!isValidEmail(val)) {
+      emailContainer.classList.add('error');
+      emailInput.setAttribute('aria-invalid', 'true');
+      emailInput.focus({ preventScroll: true });
+      // scroll into view
+      emailContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    emailContainer.classList.remove('error');
+    emailInput.removeAttribute('aria-invalid');
+    return true;
+  };
+
+  const validateTermsAcceptance = () => {
+    if (!termsCheckbox.checked) {
+      termsContainer.classList.add('error');
+      termsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => { termsContainer.classList.remove('error'); }, 3000);
+      return false;
+    }
+    return true;
+  };
+
+  // Live validation
+  emailInput.addEventListener('input', () => {
+    if (emailContainer.classList.contains('error') && isValidEmail(emailInput.value)) {
+      emailContainer.classList.remove('error');
+      emailInput.removeAttribute('aria-invalid');
+    }
+  });
+  termsCheckbox.addEventListener('change', () => {
+    if (termsCheckbox.checked) {
+      termsContainer.classList.remove('error');
+      if (paymentButtonOverlay) paymentButtonOverlay.style.display = 'none';
+    } else {
+      if (paymentButtonOverlay) paymentButtonOverlay.style.display = 'block';
+    }
+  });
+
+  // Platform sniff
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua);
+  const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
+
+  let stripe, paymentRequest, clientSecret;
+
+  // Initialize Stripe
+  try {
+    stripe = Stripe(PUBLISHABLE_KEY);
+  } catch (error) {
+    console.error("Failed to initialize Stripe:", error);
+    showStatus("Failed to initialize payment system", "error");
+    return;
+  }
+
+  // Core payment flow
+  const handlePayment = async (paymentMethod, payerEmailFromSheet) => {
+    try {
+      showStatus("Processing payment...", "info");
+
+      // Enforce email + terms before talking to backend (defense in depth)
+      const okEmail = validateEmail();
+      const okTerms = validateTermsAcceptance();
+      if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
+
+      const effectiveEmail = emailInput.value.trim() || payerEmailFromSheet || emailParam || "";
+
+      // 1) SetupIntent
+      if (!clientSecret) {
+        const setupResponse = await fetch(SETUP_INTENT_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId })
+        });
+        if (!setupResponse.ok) {
+          const errorText = await setupResponse.text();
+          throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
+        }
+        const setupJson = await setupResponse.json();
+        clientSecret = setupJson.clientSecret;
+        if (!clientSecret) throw new Error("No client secret received");
+      }
+
+      // 2) Confirm setup
+      const confirmResult = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: paymentMethod.id
+      });
+      if (confirmResult.error) throw new Error(confirmResult.error.message);
+
+      showStatus("Creating subscription...", "info");
+
+      // 3) Create subscription on your server
+      const paymentMethodId = confirmResult.setupIntent?.payment_method || paymentMethod.id;
+      const payload = {
+        paymentMethodId,
+        userId,
+        email: effectiveEmail,
+        sub_type,
+        isDiscounted,
+        lookup_key: product_id,
+        age,
+        gender,
+        offeringId
+      };
+
+      const subResponse = await fetch(CREATE_SUB_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!subResponse.ok) {
+        const errorText = await subResponse.text();
+        throw new Error(`Subscription API error: ${subResponse.status} - ${errorText}`);
+      }
+      const subJson = await subResponse.json();
+      if (subJson.error) throw new Error(subJson.error);
+      const subscriptionId = subJson.subscriptionId;
+      if (!subscriptionId) throw new Error("No subscription ID returned from server");
+
+      // 4) Success UI
+      showSuccessChrome();
+
+      const q = new URLSearchParams({
+        sid: subscriptionId,
+        userId,
+        sub_type,
+        forceApp: "true"
+      }).toString();
+
+      const universalLink = `${SUCCESS_URL_UL}?${q}`;
+
+      if (styleMode === 0) {
+        successMsg.textContent = "Success! You can now press \"done\" on the top left and return to the app.";
+        returnBtn.classList.add('hidden');
+      } else {
+        successMsg.textContent = "Success! You can now return to the app. Tap the button below.";
+        returnBtn.classList.remove('hidden');
+        returnBtn.onclick = (e) => {
+          e.preventDefault();
+          let handedOff = false;
+          const onVis = () => { if (document.hidden) handedOff = true; };
+          document.addEventListener('visibilitychange', onVis, { once: true });
+          window.open(universalLink, '_blank', 'noopener');
+        };
+      }
+
+    } catch (error) {
+      console.error("Payment error:", error);
+      showStatus(`Error: ${error.message}`, "error");
+      throw error;
+    }
+  };
+
+  // Initialize Payment Request (Apple Pay)
+  try {
+    let displayItems = [];
+    let totalAmount = amount; // cents
+    let totalLabel = "Start Free Trial";
+
+    if (freetrial) {
+      displayItems = [
+        { label: sub_type, amount: amount },
+        { label: "Free Trial", amount: -amount }
+      ];
+      totalAmount = 0;
+      totalLabel = "Free Trial (We'll send you a reminder)";
+    } else {
+      displayItems = [{ label: sub_type, amount }];
+      totalAmount = amount;
+      totalLabel = sub_type;
+    }
+
+    if (!totalDueParam) {
+      totalAmountP.textContent = `Total Due Today: ${fmtUSD(totalAmount)}`;
+      totalDueDiv.classList.remove('hidden');
+    }
+
+    paymentRequest = stripe.paymentRequest({
+      country: "US",
+      currency: "usd",
+      total: { label: totalLabel, amount: totalAmount },
+      displayItems,
+      requestPayerEmail: true,
+      buttonType: 'default'
+    });
+
+    const canMake = await paymentRequest.canMakePayment();
+
+    if (canMake && canMake.applePay && (isIOS || isSafari)) {
+      paymentRequest.on("paymentmethod", async (event) => {
+        try {
+          // Use the email from the required field (overrides Apple Pay's email)
+          await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
+          event.complete("success");
+        } catch (error) {
+          event.complete("fail");
+        }
+      });
+
+      const elements = stripe.elements();
+      const prButton = elements.create("paymentRequestButton", {
+        paymentRequest,
+        style: { paymentRequestButton: { type: 'default', theme: 'dark', height: '56px' } }
+      });
+
+      await prButton.mount("#payment-request-button");
+      paymentRequestButtonDiv.classList.remove('hidden');
+
+      // Overlay click: gate on Email + Terms
+      paymentButtonOverlay.classList.remove('hidden');
+      paymentButtonOverlay.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const okEmail = validateEmail();
+        const okTerms = validateTermsAcceptance();
+        if (!(okEmail && okTerms)) return;
+
+        // If validated, hide overlay and trigger Apple Pay button
+        paymentButtonOverlay.style.display = 'none';
+        const applePayButton = document.querySelector('#payment-request-button button, #payment-request-button div[role="button"]');
+        if (applePayButton) applePayButton.click();
+      });
+
+    } else {
+      showStatus("Apple Pay not available on this device", "error");
+      const fb = document.getElementById("fallbackBtn");
+      fb.classList.remove('hidden');
+      fb.onclick = () => {
+        const okEmail = validateEmail();
+        const okTerms = validateTermsAcceptance();
+        if (!okEmail || !okTerms) return;
+        showStatus("Please use a device with Apple Pay support", "error");
+      };
+    }
+  } catch (error) {
+    console.error("Initialization error:", error);
+    showStatus(`Initialization error: ${error.message}`, "error");
+    const fb = document.getElementById("fallbackBtn");
+    fb.classList.remove('hidden');
+    fb.textContent = 'Payment Error';
+  }
+
+})();
+</script>
+</body>
+</html>
