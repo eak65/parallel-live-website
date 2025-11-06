@@ -177,6 +177,8 @@
     }
     .fallback-button:hover { background: #333; }
     .fallback-button:active { background: #555; transform: scale(0.98); }
+    .fallback-button[disabled] { opacity: 0.5; cursor: not-allowed; } /* NEW */
+
     .apple-logo { width: 20px; height: 24px; fill: white; }
     .loading { opacity: 0.7; cursor: not-allowed; }
 
@@ -332,6 +334,7 @@
   const totalAmountP  = document.getElementById("totalAmount");
   const successView   = document.getElementById("successView");
   const successMsg    = document.getElementById("successMsg");
+  const returnBtn     = document.getElementById("returnBtn");
   const whyBlock      = document.getElementById("whyBlock");
   const termsCheckbox = document.getElementById("termsCheckbox");
   const termsContainer = document.getElementById("termsContainer");
@@ -375,7 +378,6 @@
   // --- Validation helpers ---
   const isValidEmail = (v) => {
     const s = (v || "").trim();
-    // lightweight but strict enough for UI blocking
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s);
   };
 
@@ -385,7 +387,6 @@
       emailContainer.classList.add('error');
       emailInput.setAttribute('aria-invalid', 'true');
       emailInput.focus({ preventScroll: true });
-      // scroll into view
       emailContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return false;
     }
@@ -404,21 +405,37 @@
     return true;
   };
 
+  // ---- NEW: Gate logic (email + terms must both be OK) ----
+  const meetsRequirements = () =>
+    isValidEmail(emailInput.value.trim()) && termsCheckbox.checked;
+
+  const updateGate = () => {
+    if (paymentButtonOverlay) {
+      paymentButtonOverlay.style.display = meetsRequirements() ? 'none' : 'block';
+    }
+    if (fallbackButton) {
+      fallbackButton.disabled = !meetsRequirements();
+    }
+  };
+
   // Live validation
   emailInput.addEventListener('input', () => {
     if (emailContainer.classList.contains('error') && isValidEmail(emailInput.value)) {
       emailContainer.classList.remove('error');
       emailInput.removeAttribute('aria-invalid');
     }
+    updateGate();
   });
+
   termsCheckbox.addEventListener('change', () => {
     if (termsCheckbox.checked) {
       termsContainer.classList.remove('error');
-      if (paymentButtonOverlay) paymentButtonOverlay.style.display = 'none';
-    } else {
-      if (paymentButtonOverlay) paymentButtonOverlay.style.display = 'block';
     }
+    updateGate();
   });
+
+  // Initialize gate to current values
+  updateGate();
 
   // Platform sniff
   const ua = navigator.userAgent || "";
@@ -477,7 +494,7 @@
       const payload = {
         paymentMethodId,
         userId,
-        applePayEmail:payerEmailFromSheet,
+        applePayEmail: payerEmailFromSheet,
         email: effectiveEmail,
         sub_type,
         isDiscounted,
@@ -572,7 +589,7 @@
     if (canMake && canMake.applePay && (isIOS || isSafari)) {
       paymentRequest.on("paymentmethod", async (event) => {
         try {
-          // Use the email from the required field (overrides Apple Pay's email)
+          // We still gate on the overlay, but if an event slips through, validate again
           await handlePayment(event.paymentMethod, event.paymentMethod.billing_details?.email);
           event.complete("success");
         } catch (error) {
@@ -591,6 +608,8 @@
 
       // Overlay click: gate on Email + Terms
       paymentButtonOverlay.classList.remove('hidden');
+      updateGate(); // ensure overlay reflects current validity
+
       paymentButtonOverlay.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -609,6 +628,8 @@
       showStatus("Apple Pay not available on this device", "error");
       const fb = document.getElementById("fallbackBtn");
       fb.classList.remove('hidden');
+      updateGate(); // disable until both requirements met
+
       fb.onclick = () => {
         const okEmail = validateEmail();
         const okTerms = validateTermsAcceptance();
@@ -622,6 +643,7 @@
     const fb = document.getElementById("fallbackBtn");
     fb.classList.remove('hidden');
     fb.textContent = 'Payment Error';
+    updateGate();
   }
 
 })();
