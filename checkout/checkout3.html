@@ -280,9 +280,9 @@
       </button>
     </div>
     <br>
-    <div>
-      Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
-    </div>
+<div id="supportBlock">
+  Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
+</div>
     <br>
 
     <div id="whyBlock">
@@ -293,10 +293,14 @@
       <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
     </div>
 
-    <div id="successView" class="success-view hidden">
-      <div class="success-message" id="successMsg">Success!</div>
-      <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
-    </div>
+<div id="successView" class="success-view hidden">
+  <div class="success-message" id="successMsg">Success!</div>
+  <a id="returnBtn" class="fallback-button hidden" href="#">Return to App</a>
+
+  <div class="success-support" style="margin-top:14px;font-size:14px;color:#4c5875;">
+    Questions or issues? Contact: <a href="mailto:support@bigbraintech.ai">support@bigbraintech.ai</a>
+  </div>
+</div>
 
     <div id="status"></div>
   </div>
@@ -378,16 +382,18 @@
     statusDiv.textContent = message;
     statusDiv.style.display = 'block';
   };
+const supportBlock = document.getElementById("supportBlock");
 
-  const showSuccessChrome = () => {
-    totalDueDiv.style.display = 'none';
-    document.querySelector('.payment-container').style.display = 'none';
-    document.querySelector('.terms-container').style.display = 'none';
-    document.querySelector('.email-container').style.display = 'none';
-    if (whyBlock) whyBlock.style.display = 'none';
-    statusDiv.style.display = 'none';
-    successView.classList.remove('hidden');
-  };
+const showSuccessChrome = () => {
+  totalDueDiv.style.display = 'none';
+  document.querySelector('.payment-container').style.display = 'none';
+  document.querySelector('.terms-container').style.display = 'none';
+  document.querySelector('.email-container').style.display = 'none';
+  if (whyBlock) whyBlock.style.display = 'none';
+  if (supportBlock) supportBlock.style.display = 'none';  // <-- hide pre-purchase support
+  statusDiv.style.display = 'none';
+  successView.classList.remove('hidden');
+};
 
   // --- Validation helpers ---
   const isValidEmail = (v) => {
