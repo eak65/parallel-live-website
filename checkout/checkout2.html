@@ -17,24 +17,16 @@
       color: #0b1324;
       -webkit-font-smoothing: antialiased;
     }
-    .logo-container {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-    .logo-container img {
-      max-width: 180px;
-      height: auto;
-    }
+    .logo-container { display: flex; justify-content: center; margin-bottom: 16px; }
+    .logo-container img { max-width: 180px; height: auto; }
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+
     .card {
       width: 100%; max-width: 520px;
       background: #fff;
       border-radius: 18px;
-      box-shadow:
-        0 32px 90px rgba(17, 24, 39, 0.18),
-        0 4px 10px rgba(17, 24, 39, 0.06);
-      padding: 26px 20px 18px; /* reduced inner left/right */
+      box-shadow: 0 32px 90px rgba(17,24,39,.18), 0 4px 10px rgba(17,24,39,.06);
+      padding: 26px 20px 18px;
       text-align: center;
     }
     h1 { font-size: 22px; margin: 0 0 10px; font-weight: 800; }
@@ -44,153 +36,50 @@
 
     /* Email field */
     .email-container {
-      margin: 10px auto 12px;
-      width: 100%;
-      max-width: 360px;
-      text-align: left;
-      padding: 14px 16px 16px;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
+      margin: 10px auto 12px; width: 100%; max-width: 360px; text-align: left;
+      padding: 14px 16px 16px; border-radius: 12px; background: #f8fafc; border: 2px solid #e2e8f0;
       transition: all 0.2s ease;
     }
-    .email-container label {
-      display: block;
-      font-size: 13px;
-      color: #374151;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
+    .email-container label { display: block; font-size: 13px; color: #374151; margin-bottom: 8px; font-weight: 600; }
     .email-input {
-      width: 100%;
-      box-sizing: border-box;
-      height: 42px;
-      border-radius: 10px;
-      border: 1.5px solid #cbd5e1;
-      padding: 0 12px;
-      font-size: 14px;
-      outline: none;
-      background: #fff;
+      width: 100%; height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 14px; outline: none; background: #fff;
     }
-    .email-input:focus {
-      border-color: #0369a1;
-      box-shadow: 0 0 0 4px rgba(3,105,161,0.1);
-    }
-    .email-container.error {
-      background: #fef2f2;
-      border-color: #fecaca;
-      animation: shake 0.5s ease-in-out;
-    }
-    .email-error {
-      color: #dc2626;
-      font-size: 13px;
-      margin-top: 8px;
-      font-weight: 500;
-      display: none;
-      margin-bottom: 18px;
-    }
+    .email-input:focus { border-color: #0369a1; box-shadow: 0 0 0 4px rgba(3,105,161,0.1); }
+    .email-container.error { background: #fef2f2; border-color: #fecaca; animation: shake .5s ease-in-out; }
+    .email-error { color: #dc2626; font-size: 13px; margin-top: 8px; font-weight: 500; display: none; margin-bottom: 18px; }
     .email-container.error .email-error { display: block; }
 
     /* Terms checkbox */
     .terms-container {
-      margin: 12px auto 18px;
-      width: 100%;
-      max-width: 360px;
-      text-align: left;
-      padding: 16px;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 2px solid #e2e8f0;
-      transition: all 0.2s ease;
+      margin: 12px auto 18px; width: 100%; max-width: 360px; text-align: left;
+      padding: 16px; border-radius: 12px; background: #f8fafc; border: 2px solid #e2e8f0; transition: all 0.2s ease;
     }
-    .terms-container.error {
-      background: #fef2f2;
-      border-color: #fecaca;
-      animation: shake 0.5s ease-in-out;
-    }
-    @keyframes shake {
-      0%, 20%, 40%, 60%, 80% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-    }
-    .checkbox-wrapper {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .checkbox-input {
-      width: 18px;
-      height: 18px;
-      margin: 0;
-      cursor: pointer;
-      accent-color: #0369a1;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    .checkbox-label {
-      font-size: 14px;
-      line-height: 1.5;
-      color: #374151;
-      cursor: pointer;
-      user-select: none;
-    }
-    .checkbox-label a {
-      color: #0369a1;
-      text-decoration: none;
-      font-weight: 500;
-    }
+    .terms-container.error { background: #fef2f2; border-color: #fecaca; animation: shake .5s ease-in-out; }
+    @keyframes shake { 0%,20%,40%,60%,80%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-3px)} }
+    .checkbox-wrapper { display: flex; align-items: flex-start; gap: 12px; }
+    .checkbox-input { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: #0369a1; flex-shrink: 0; margin-top: 2px; }
+    .checkbox-label { font-size: 14px; line-height: 1.5; color: #374151; cursor: pointer; user-select: none; }
+    .checkbox-label a { color: #0369a1; text-decoration: none; font-weight: 500; }
     .checkbox-label a:hover { text-decoration: underline; }
-    .error-message {
-      color: #dc2626;
-      font-size: 13px;
-      margin-top: 8px;
-      font-weight: 500;
-      display: none;
-    }
+    .error-message { color: #dc2626; font-size: 13px; margin-top: 8px; font-weight: 500; display: none; }
     .terms-container.error .error-message { display: block; }
 
-    .payment-container {
-      margin: 12px auto 8px;
-      width: 100%;
-      max-width: 360px;
-      height: 56px;
-      position: relative;
-    }
-    #payment-request-button {
-      width: 100% !important;
-      height: 56px !important;
-      border-radius: 14px !important;
-    }
+    .payment-container { margin: 12px auto 8px; width: 100%; max-width: 360px; height: 56px; position: relative; }
+    #payment-request-button { width: 100% !important; height: 56px !important; border-radius: 14px !important; }
     .fallback-button {
-      width: 100%;
-      height: 56px;
-      background: #000;
-      border: none;
-      border-radius: 14px;
-      color: white;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: background-color 0.2s ease;
-      text-decoration: none;
-      -webkit-tap-highlight-color: transparent;
+      width: 100%; height: 56px; background: #000; border: none; border-radius: 14px; color: #fff; font-size: 16px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .2s ease;
+      text-decoration: none; -webkit-tap-highlight-color: transparent;
     }
     .fallback-button:hover { background: #333; }
-    .fallback-button:active { background: #555; transform: scale(0.98); }
-    .fallback-button[disabled] { opacity: 0.5; cursor: not-allowed; }
+    .fallback-button:active { background: #555; transform: scale(.98); }
+    .fallback-button[disabled] { opacity: .5; cursor: not-allowed; }
 
     .apple-logo { width: 20px; height: 24px; fill: white; }
-    .loading { opacity: 0.7; cursor: not-allowed; }
+    .loading { opacity: .7; cursor: not-allowed; }
 
     .status {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      text-align: center;
+      margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; text-align: center;
     }
     .status.success { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
     .status.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
@@ -199,32 +88,83 @@
     .hidden { display: none !important; }
 
     .success-view {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-      position: relative;
-      gap: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; position: relative; gap: 12px;
     }
-    .success-message {
-      font-size: 18px;
-      font-weight: 600;
-      color: #0b1324;
-      text-align: center;
-      line-height: 1.5;
-      padding: 20px;
+    .success-message { font-size: 18px; font-weight: 600; color: #0b1324; text-align: center; line-height: 1.5; padding: 20px; }
+
+    .legal { font-size: 11px; color: #6b7280; margin: 24px auto 0; max-width: 520px; text-align: left; line-height: 1.4; }
+    .legal p { margin: 0 0 12px; }
+
+    /* -------- Single Modal (used by showStatus) -------- */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: min(92vw, 420px);
+      margin: 0 16px;               /* keeps it off the edges */
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+      padding: 22px 22px 16px;
+      text-align: left;
+      outline: none;
+    }
+    .modal-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+      font-weight: 800; font-size: 16px; color: #0b1324;
+    }
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 999px; font-size: 12px; color: #fff;
+    }
+    .badge.info { background: #0369a1; }
+    .badge.success { background: #059669; }
+    .badge.error { background: #dc2626; }
+
+    .modal-body { font-size: 14px; color: #374151; line-height: 1.5; }
+    .modal-body p + p { margin-top: 10px; }
+    .modal-list { margin: 8px 0 0; padding-left: 16px; }
+    .modal-list li { margin: 6px 0; }
+
+    .badge-reco {
+      display: inline-block; margin-left: 6px; padding: 2px 6px;
+      font-size: 11px; font-weight: 700; color: #065f46;
+      background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 10px;
+      vertical-align: baseline;
     }
 
-    .legal {
-      font-size: 11px;
-      color: #6b7280;
-      margin: 24px auto 0;
-      max-width: 520px;
-      text-align: left;
-      line-height: 1.4;
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-outline, .btn-primary {
+      flex: 1; height: 44px; border-radius: 12px; font-weight: 700; font-size: 15px;
+      cursor: pointer; border: 0;
     }
-    .legal p { margin: 0 0 12px; }
+    .btn-outline { background: #f3f4f6; color: #0b1324; border: 1px solid #e5e7eb; }
+    .btn-outline:active, .btn-primary:active { transform: scale(0.99); }
+    .btn-primary { background: #0b1324; color: #fff; }
+    /* Keep comfy side gutters + safe-area support */
+.modal {
+  box-sizing: border-box;
+  max-width: 300px;
+  /* 100vw minus left/right gutters and safe-area */
+  width: calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  /* fallbacks/gutters even when safe-area is 0 */
+  margin-left: max(16px, env(safe-area-inset-left));
+  margin-right: max(16px, env(safe-area-inset-right));
+
+  /* prevent vertical overflow on short screens */
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: add padding to the backdrop so the modal never touches edges even when centered */
+.modal-backdrop {
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
   </style>
 </head>
 <body>
@@ -234,18 +174,14 @@
       <img src="logo.png" alt="Company Logo">
     </div>
 
-    <div id="totalDue" class="hidden">
-      <h1 id="totalAmount"></h1>
-    </div>
+    <div id="totalDue" class="hidden"><h1 id="totalAmount"></h1></div>
 
-    <!-- REQUIRED EMAIL (above Terms) -->
     <div class="email-container" id="emailContainer">
       <label for="emailInput">Email (required)</label>
       <input type="email" id="emailInput" class="email-input" placeholder="you@email.com" autocomplete="email" inputmode="email" />
       <div class="email-error" id="emailError">Please enter a valid email address.</div>
     </div>
 
-    <!-- Terms of Service and Privacy Policy Checkbox -->
     <div class="terms-container" id="termsContainer">
       <div class="checkbox-wrapper">
         <input type="checkbox" id="termsCheckbox" class="checkbox-input">
@@ -253,14 +189,12 @@
           I agree to the <a href="termsofservice.html" target="_blank">Terms of Service</a> and <a href="privacy_policy.html" target="_blank">Privacy Policy</a>
         </label>
       </div>
-      <div class="error-message" id="termsError">
-        You must accept the Terms of Service and Privacy Policy to continue.
-      </div>
+      <div class="error-message" id="termsError">You must accept the Terms of Service and Privacy Policy to continue.</div>
     </div>
 
     <div class="payment-container">
       <div id="payment-request-button" class="hidden"></div>
-      <div id="payment-button-overlay" class="hidden" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10; cursor: pointer;"></div>
+      <div id="payment-button-overlay" class="hidden" style="position: absolute; inset: 0; z-index: 10; cursor: pointer;"></div>
       <button class="fallback-button hidden" id="fallbackBtn">
         <svg class="apple-logo" viewBox="0 0 24 24">
           <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
@@ -278,7 +212,6 @@
     <div id="whyBlock">
       <h1>Why are we in a browser?</h1>
       <p>Starting your free trial here lets us avoid Apple's in-app fees, so we can keep trials free for everyone.</p>
-
       <h2>What happens next?</h2>
       <p>Once you're done, we'll take you right back to the app.<br/>You'll have thousands of fans waiting for you.</p>
     </div>
@@ -291,7 +224,7 @@
       </div>
     </div>
 
-    <div id="status"></div>
+    <div id="status" class="hidden"></div>
   </div>
 
   <footer class="legal">
@@ -308,6 +241,18 @@
   </footer>
 </div>
 
+<!-- Single modal used by showStatus -->
+<div id="statusModalBackdrop" class="modal-backdrop" role="presentation" aria-hidden="true">
+  <div id="statusModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle" tabindex="-1">
+    <div class="modal-header">
+      <span id="statusBadge" class="badge info" aria-hidden="true">i</span>
+      <span id="statusModalTitle">Status</span>
+    </div>
+    <div id="statusModalBody" class="modal-body"></div>
+    <div id="statusModalActions" class="modal-actions"></div>
+  </div>
+</div>
+
 <script>
 (async () => {
   // ---- Config ----
@@ -318,7 +263,7 @@
   // Universal Link path must match AASA (/checkout_redirect/*)
   const SUCCESS_URL_UL = "https://parallellive.app/checkout_redirect/success";
 
-  // Get URL parameters
+  // URL params
   const url = new URL(location.href);
   const userId     = url.searchParams.get("userId") || "";
   const sub_type   = (url.searchParams.get("sub_type") || "Subscription").trim();
@@ -346,35 +291,63 @@
   const termsCheckbox = document.getElementById("termsCheckbox");
   const termsContainer = document.getElementById("termsContainer");
   const paymentButtonOverlay = document.getElementById("payment-button-overlay");
-
   const emailContainer = document.getElementById("emailContainer");
   const emailInput = document.getElementById("emailInput");
+
+  // Modal elements
+  const backdrop = document.getElementById("statusModalBackdrop");
+  const modal    = document.getElementById("statusModal");
+  const badge    = document.getElementById("statusBadge");
+  const titleEl  = document.getElementById("statusModalTitle");
+  const bodyEl   = document.getElementById("statusModalBody");
+  const actions  = document.getElementById("statusModalActions");
 
   // Prefill email (if provided via query)
   if (emailParam) emailInput.value = emailParam;
 
-
-  function renderSuccess(universalLink, messageText) {
-    if (totalDueDiv) totalDueDiv.style.display = 'none';
-    const hide = (sel) => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
-    hide('.payment-container');
-    hide('.terms-container');
-    hide('.email-container');
-    if (whyBlock) whyBlock.style.display = 'none';
-    if (statusDiv) statusDiv.style.display = 'none';
-    const supportBlock = document.getElementById("supportBlock");
-    if (supportBlock) supportBlock.style.display = 'none';
-
-    successView.classList.remove('hidden');
-    successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
-    returnBtn.classList.remove('hidden');
-
-    returnBtn.onclick = (e) => {
-      e.preventDefault();
-      window.open(universalLink, '_blank', 'noopener');
-    };
-
+  // ---- Modal helpers (single modal) ----
+  function returnToApp() {
+    const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
+    window.open('https://parallellive.app/checkout_redirect/success', '_blank', 'noopener'); 
   }
+
+  function openStatusModal({ title = 'Status', html = '', mode = 'info', actionsBuilder } = {}) {
+    badge.className = 'badge ' + (mode === 'error' ? 'error' : mode === 'success' ? 'success' : 'info');
+    titleEl.textContent = title;
+    bodyEl.innerHTML = html;
+    actions.innerHTML = '';
+    actions.dataset.mode = mode;
+
+    if (typeof actionsBuilder === 'function') {
+      actionsBuilder(actions);
+    } else {
+      const ok = document.createElement('button');
+      ok.className = 'btn-primary';
+      ok.textContent = 'OK';
+      ok.onclick = closeStatusModal;
+      actions.appendChild(ok);
+    }
+
+    document.body.style.overflow = 'hidden';
+    backdrop.classList.add('open');
+    modal.focus();
+  }
+
+  function closeStatusModal() {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    actions.innerHTML = '';
+  }
+
+  // click-outside / Esc only closes non-error
+  backdrop.addEventListener('click', (e) => {
+    if (actions.dataset.mode !== 'error' && e.target === backdrop) closeStatusModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop.classList.contains('open') && actions.dataset.mode !== 'error') {
+      closeStatusModal();
+    }
+  });
 
   // Money formatter
   const fmtUSD = (cents) =>
@@ -387,24 +360,76 @@
     totalDueDiv.classList.remove('hidden');
   }
 
-  const showStatus = (message, type = 'info') => {
-    statusDiv.className = `status ${type}`;
-    statusDiv.textContent = message;
-    statusDiv.style.display = 'block';
-  };
+  // ---- showStatus (uses single modal) ----
+  function showStatus(message, type = 'info') {
+    if (type === 'error') {
+      // prepaid special
+      if (message === 'prepaid_not_allowed') {
+        openStatusModal({
+          title: 'Payment Issue',
+          mode: 'error',
+          html: `
+            <p><strong>Prepaid cards aren't supported for free trials.</strong> You have three options to fix this:</p>
+            <ul class="modal-list">
+              <li><span class="badge-reco">*Recommended</span> Switch to a debit or credit card.</li>
+              <li>Return to the app and try with App Store Billing.</li>
+              <li>Return to the app and purchase annual with your prepaid card</li>
+            </ul>
+          `,
+          actionsBuilder: (container) => {
+            const btnReturn = document.createElement('button');
+            btnReturn.className = 'btn-outline';
+            btnReturn.textContent = 'Return to app';
+            btnReturn.onclick = (e) => { 
+                  e.preventDefault();
+                  closeStatusModal();
+                  returnToApp(); 
+             };
 
-  // If the user already completed checkout on this device, show success immediately.
-  try {
-    const saved = JSON.parse(localStorage.getItem(successKey) || 'null');
-    if (saved && saved.ul) {
-      renderSuccess(saved.ul, 'Success! You already started your free trial. You can return to the app below.');
-      return; // skip building Apple Pay UI
+            const btnSwitch = document.createElement('button');
+            btnSwitch.className = 'btn-primary';
+            btnSwitch.textContent = 'Switch cards';
+            btnSwitch.onclick = () => { closeStatusModal(); };
+
+            container.appendChild(btnReturn);
+            container.appendChild(btnSwitch);
+          }
+        });
+        return;
+      }
+
+      // Generic error
+      const safe = (message && String(message).trim()) || 'Something went wrong. Please try again.';
+      openStatusModal({
+        title: 'There was a problem',
+        mode: 'error',
+        html: `<p>${safe}</p>`,
+        actionsBuilder: (container) => {
+          const btnReturn = document.createElement('button');
+          btnReturn.className = 'btn-outline';
+          btnReturn.textContent = 'Return to app';
+          btnReturn.onclick = () => { closeStatusModal(); returnToApp(); };
+
+          const btnOk = document.createElement('button');
+          btnOk.className = 'btn-primary';
+          btnOk.textContent = 'OK';
+          btnOk.onclick = closeStatusModal;
+
+          container.appendChild(btnReturn);
+          container.appendChild(btnOk);
+        }
+      });
+      return;
     }
-  } catch (_) {}
 
-  // --- Validation helpers ---
+    // Non-error: inline banner
+    statusDiv.className = `status ${type}`;
+    statusDiv.textContent = message || '';
+    statusDiv.style.display = 'block';
+  }
+
+  // Validation helpers
   const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").trim());
-
   const validateEmail = () => {
     const val = emailInput.value.trim();
     const ok = isValidEmail(val);
@@ -422,7 +447,6 @@
     }
     return ok;
   };
-
   const validateTermsAcceptance = () => {
     const checked = termsCheckbox.checked;
     if (!checked) {
@@ -433,7 +457,7 @@
     return checked;
   };
 
-  // ---- Gate logic (email + terms must both be OK) ----
+  // Gate logic
   const meetsRequirements = () =>
     isValidEmail(emailInput.value.trim()) && termsCheckbox.checked;
 
@@ -454,16 +478,13 @@
     }
     updateGate();
   });
-
   termsCheckbox.addEventListener('change', () => {
     if (termsCheckbox.checked) termsContainer.classList.remove('error');
     updateGate();
   });
-
-  // Initialize gate to current values
   updateGate();
 
-  // Platform sniff
+  // Platform sniff (mainly for Apple Pay button)
   const ua = navigator.userAgent || "";
   const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
@@ -479,33 +500,42 @@
     return;
   }
 
+  // Success view
+  function renderSuccess(universalLink, messageText) {
+    if (totalDueDiv) totalDueDiv.style.display = 'none';
+    const hide = (sel) => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
+    hide('.payment-container'); hide('.terms-container'); hide('.email-container');
+    if (whyBlock) whyBlock.style.display = 'none';
+    const supportBlock = document.getElementById("supportBlock"); if (supportBlock) supportBlock.style.display = 'none';
+
+    successView.classList.remove('hidden');
+    successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
+    returnBtn.classList.remove('hidden');
+    returnBtn.onclick = (e) => { e.preventDefault(); window.open(universalLink, '_blank', 'noopener'); };
+  }
+
   // Core payment flow
   const handlePayment = async (paymentMethod, payerEmailFromSheet) => {
     try {
-      showStatus("Processing payment...", "info");
-
-      // Enforce email + terms before talking to backend (defense in depth)
       const okEmail = validateEmail();
       const okTerms = validateTermsAcceptance();
       if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
 
       const effectiveEmail = emailInput.value.trim() || emailParam || "";
 
-      // 1) SetupIntent
-      if (!clientSecret) {
-        const setupResponse = await fetch(SETUP_INTENT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
-        });
-        if (!setupResponse.ok) {
-          const errorText = await setupResponse.text();
-          throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
-        }
-        const setupJson = await setupResponse.json();
-        clientSecret = setupJson.clientSecret;
-        if (!clientSecret) throw new Error("No client secret received");
+      // 1) SetupIntent (always fetch fresh before confirm to avoid stale/processing errors)
+      const setupResponse = await fetch(SETUP_INTENT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
+      });
+      if (!setupResponse.ok) {
+        const errorText = await setupResponse.text();
+        throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
       }
+      const setupJson = await setupResponse.json();
+      clientSecret = setupJson.clientSecret;
+      if (!clientSecret) throw new Error("No client secret received");
 
       // 2) Confirm setup
       const confirmResult = await stripe.confirmCardSetup(clientSecret, {
@@ -513,21 +543,12 @@
       });
       if (confirmResult.error) throw new Error(confirmResult.error.message);
 
-      showStatus("Creating subscription...", "info");
-
       // 3) Create subscription on your server
       const paymentMethodId = confirmResult.setupIntent?.payment_method || paymentMethod.id;
       const payload = {
-        paymentMethodId,
-        userId,
-        applePayEmail: payerEmailFromSheet,
-        email: effectiveEmail,
-        sub_type,
-        isDiscounted,
-        lookup_key: product_id,
-        age,
-        gender,
-        offeringId
+        paymentMethodId, userId,
+        applePayEmail: payerEmailFromSheet, email: effectiveEmail,
+        sub_type, isDiscounted, lookup_key: product_id, age, gender, offeringId
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
@@ -535,33 +556,41 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+
+      const data = await subResponse.json().catch(() => ({}));
       if (!subResponse.ok) {
-        const errorText = await subResponse.text();
-        throw new Error(`Subscription API error: ${subResponse.status} - ${errorText}`);
+        if (data?.error === "prepaid_not_allowed") {
+          showStatus("prepaid_not_allowed", "error");
+          clientSecret = null; // force new SetupIntent next try
+          return;
+        }
+        showStatus(data?.message || `Subscription API error ${subResponse.status}`, "error");
+        clientSecret = null;
+        return;
       }
-      const subJson = await subResponse.json();
-      if (subJson.error) throw new Error(subJson.error);
-      const subscriptionId = subJson.subscriptionId;
-      if (!subscriptionId) throw new Error("No subscription ID returned from server");
 
-      // 4) Success UI + persist
-      const q = new URLSearchParams({
-        sid: subscriptionId,
-        userId,
-        sub_type,
-        forceApp: "true"
-      }).toString();
+      if (data.error) {
+        showStatus(String(data.error), "error");
+        throw new Error(String(data.error));
+      }
+
+      const subscriptionId = data.subscriptionId;
+      if (!subscriptionId) {
+        showStatus("No subscription ID returned from server", "error");
+        throw new Error("No subscription ID returned from server");
+      }
+
+      // 4) Success UI
+      const q = new URLSearchParams({ sid: subscriptionId, userId, sub_type, forceApp: "true" }).toString();
       const universalLink = `${SUCCESS_URL_UL}?${q}`;
-
-      if (styleMode === 0) {
-        renderSuccess(universalLink, 'Success! You can now press "Done" to return to the app.');
-      } else {
-        renderSuccess(universalLink, 'Success! You can now return to the app. Tap the button below.');
-      }
+      renderSuccess(universalLink, styleMode === 0
+        ? 'Success! You can now press "Done" to return to the app.'
+        : 'Success! You can now return to the app. Tap the button below.'
+      );
 
     } catch (error) {
       console.error("Payment error:", error);
-      showStatus(`Error: ${error.message}`, "error");
+      if (!backdrop.classList.contains("open")) showStatus(`Error: ${error.message}`, "error");
       throw error;
     }
   };
@@ -569,7 +598,7 @@
   // Initialize Payment Request (Apple Pay)
   try {
     let displayItems = [];
-    let totalAmount = amount; // cents
+    let totalAmount = amount;
     let totalLabel = "Start Free Trial";
 
     if (freetrial) {
@@ -621,7 +650,7 @@
 
       // Overlay click: gate on Email + Terms
       paymentButtonOverlay.classList.remove('hidden');
-      updateGate(); // ensure overlay reflects current validity
+      updateGate();
 
       paymentButtonOverlay.addEventListener('click', (e) => {
         e.preventDefault();
@@ -631,7 +660,6 @@
         const okTerms = validateTermsAcceptance();
         if (!(okEmail && okTerms)) return;
 
-        // If validated, hide overlay and trigger Apple Pay button
         paymentButtonOverlay.style.display = 'none';
         const applePayButton =
           document.querySelector('#payment-request-button button, #payment-request-button div[role="button"]');
@@ -642,7 +670,7 @@
       showStatus("Apple Pay not available on this device", "error");
       const fb = document.getElementById("fallbackBtn");
       fb.classList.remove('hidden');
-      updateGate(); // disable until both requirements met
+      updateGate();
 
       fb.onclick = () => {
         const okEmail = validateEmail();
