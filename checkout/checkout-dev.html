@@ -535,10 +535,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      if (!subResponse.ok) {
-        const errorText = await subResponse.text();
-        throw new Error(`Subscription API error: ${subResponse.status} - ${errorText}`);
-      }
+
+if (!subResponse.ok) {
+  if (data?.error === "prepaid_not_allowed") {
+    showStatus("Prepaid cards aren’t supported. Try a debit or credit card.", "error");
+    // return here if you don't want event.complete('fail') to fire
+    throw new Error("prepaid_not_allowed"); // keep current behavior
+  }
+  throw new Error(data?.message || `Subscription API error ${subResponse.status}`);
+}
       const subJson = await subResponse.json();
       if (subJson.error) throw new Error(subJson.error);
       const subscriptionId = subJson.subscriptionId;
