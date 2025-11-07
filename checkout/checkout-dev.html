@@ -377,7 +377,9 @@
             const btnReturn = document.createElement('button');
             btnReturn.className = 'btn-outline';
             btnReturn.textContent = 'Return to app';
-            btnReturn.onclick = () => { closeStatusModal(); returnToApp(); };
+            btnReturn.onclick = () => { closeStatusModal(); 
+             window.open(universalLink, '_blank', 'noopener'); };
+             };
 
             const btnSwitch = document.createElement('button');
             btnSwitch.className = 'btn-primary';
