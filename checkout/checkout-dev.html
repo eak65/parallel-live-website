@@ -306,7 +306,7 @@
   // ---- Modal helpers (single modal) ----
   function returnToApp() {
     const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
-    window.open(fallbackUL, '_blank', 'noopener');
+    window.open('https://parallellive.app/checkout_redirect/success', '_blank', 'noopener'); 
   }
 
   function openStatusModal({ title = 'Status', html = '', mode = 'info', actionsBuilder } = {}) {
@@ -378,7 +378,9 @@
             btnReturn.className = 'btn-outline';
             btnReturn.textContent = 'Return to app';
             btnReturn.onclick = (e) => { 
-              e.preventDefault(); window.open(universalLink, '_blank', 'noopener'); 
+                  e.preventDefault();
+                  closeStatusModal();
+                  returnToApp(); 
              };
 
             const btnSwitch = document.createElement('button');
