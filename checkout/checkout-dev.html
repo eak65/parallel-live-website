@@ -535,6 +535,8 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      const data = await subResponse.json().catch(() => ({}));
+
 
 if (!subResponse.ok) {
   if (data?.error === "prepaid_not_allowed") {
