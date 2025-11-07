@@ -353,8 +353,6 @@
   // Prefill email (if provided via query)
   if (emailParam) emailInput.value = emailParam;
 
-  // --- Success persistence helpers (define once, top-level) ---
-  const successKey = `pl_checkout_success::${userId || 'anon'}`;
 
   function renderSuccess(universalLink, messageText) {
     if (totalDueDiv) totalDueDiv.style.display = 'none';
@@ -376,7 +374,6 @@
       window.open(universalLink, '_blank', 'noopener');
     };
 
-    localStorage.setItem(successKey, JSON.stringify({ ts: Date.now(), ul: universalLink }));
   }
 
   // Money formatter
