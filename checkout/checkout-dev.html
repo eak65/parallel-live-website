@@ -414,7 +414,7 @@ modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
 function showStatus(message, type = 'info') {
   if (type === 'error') {
     // Special formatting for prepaid error; fall back to generic if different
-    if (message == 'prepaid_not_allowed') {
+    if (message === 'prepaid_not_allowed') {
       openModal(`
         <p><strong>Prepaid cards aren't supported for free trials.</strong> You have two options to fix this:</p>
         <ul class="modal-list">
