@@ -131,6 +131,82 @@
   padding: 24px 26px 18px;
   text-align: left;
 }
+/* Overlay + modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,19,36,0.55);
+  backdrop-filter: blur(2px);
+  display: none; /* toggled by JS */
+  align-items: center; justify-content: center;
+  z-index: 9999;
+}
+
+.modal {
+  width: min(78vw, 380px);
+  margin: 0 16px;              /* keeps it off the edges */
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  padding: 22px 22px 16px;
+  text-align: left;
+}
+
+.modal h3 {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0b1324;
+}
+
+.modal p { margin: 0; color: #4c5875; font-size: 14px; line-height: 1.5; }
+.modal p + p { margin-top: 10px; }
+
+.modal-list { margin: 8px 0 0; padding-left: 16px; }
+.modal-list li { margin: 6px 0; }
+
+.badge-reco {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #065f46;
+  background: #d1fae5;
+  border: 1px solid #a7f3d0;
+  border-radius: 10px;
+  vertical-align: baseline;
+}
+
+.modal-actions {
+  display: flex; gap: 10px;
+  margin-top: 16px;
+}
+
+.btn-outline, .btn-primary {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  border: 0;
+}
+
+.btn-outline {
+  background: #f3f4f6;
+  color: #0b1324;
+  border: 1px solid #e5e7eb;
+}
+
+.btn-outline:active { transform: scale(0.99); }
+
+.btn-primary {
+  background: #0b1324;
+  color: #fff;
+}
+
+.btn-primary:active { transform: scale(0.99); }
+
   </style>
 </head>
 <body>
@@ -222,6 +298,39 @@
 </div>
 
 <script>
+  // --- Modal nodes (created once) ---
+const overlay = document.createElement('div');
+overlay.className = 'modal-overlay';
+overlay.innerHTML = `
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">There was a problem</h3>
+    <div class="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-outline" id="modalReturn">Return to app</button>
+      <button class="btn-primary" id="modalConfirm">Switch cards</button>
+    </div>
+  </div>
+`;
+document.body.appendChild(overlay);
+
+const modalBody = overlay.querySelector('.modal-body');
+const modalReturnBtn = overlay.querySelector('#modalReturn');
+const modalConfirmBtn = overlay.querySelector('#modalConfirm');
+
+function openModal(html) {
+  modalBody.innerHTML = html;
+  overlay.style.display = 'flex';
+}
+function closeModal() { overlay.style.display = 'none'; }
+
+// Use a safe universal link root for “Return to app”
+function returnToApp() {
+  // If you have a dedicated cancel/return route, put it here:
+  const fallbackUL = 'https://parallellive.app/'; // root UL typically opens the app via AASA
+  window.open(fallbackUL, '_blank', 'noopener');
+}
+modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
+
 (async () => {
   // ---- Config ----
   const PUBLISHABLE_KEY = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
@@ -302,46 +411,39 @@
     totalDueDiv.classList.remove('hidden');
   }
 
-  // ---- NEW modal-based showStatus ----
-  const showStatus = (message, type = 'info') => {
-    // Update visuals
-    bodyEl.textContent = message;
-    let label = "Status";
-    badge.className = "badge";
-    if (type === "error") {
-      label = "Error";
-      badge.classList.add("error");
-      badge.textContent = "!";
-    } else if (type === "success") {
-      label = "Success";
-      badge.classList.add("success");
-      badge.textContent = "✓";
-    } else {
-      label = "Info";
-      badge.classList.add("info");
-      badge.textContent = "i";
-    }
-    titleEl.textContent = label;
-
-    // Actions
-    actions.innerHTML = "";
-    actions.dataset.mode = type;
-
-    if (type === "error") {
-      const ok = document.createElement("button");
-      ok.className = "btn btn-ok";
-      ok.textContent = "OK";
-      ok.addEventListener("click", closeModal);
-      actions.appendChild(ok);
+function showStatus(message, type = 'info') {
+  if (type === 'error') {
+    // Special formatting for prepaid error; fall back to generic if different
+    const isPrepaidMsg = /prepaid/i.test(message);
+    if (isPrepaidMsg) {
+      openModal(`
+        <p><strong>Prepaid cards aren't supported for free trials.</strong> You have two options to fix this:</p>
+        <ul class="modal-list">
+          <li>Switch to a debit or credit card. <span class="badge-reco">Recommended*</span></li>
+          <li>Return to the app and try with App Store Billing.</li>
+        </ul>
+      `);
+      // Primary button = “Switch cards” just closes and lets them try again
+      modalConfirmBtn.textContent = 'Switch cards';
+      modalConfirmBtn.onclick = () => { closeModal(); };
+      modalReturnBtn.textContent = 'Return to app';
+      return;
     }
 
-    openModal();
+    // Generic error modal
+    openModal(`<p>${message}</p>`);
+    modalConfirmBtn.textContent = 'OK';
+    modalConfirmBtn.onclick = () => { closeModal(); };
+    modalReturnBtn.textContent = 'Return to app';
+    return;
+  }
 
-    // Auto-dismiss for info/success
-    if (type !== "error") {
-      setTimeout(closeModal, 1500);
-    }
-  };
+  // Non-error: keep your inline banner
+  statusDiv.className = `status ${type}`;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
 
   // Validation helpers
   const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").trim());
