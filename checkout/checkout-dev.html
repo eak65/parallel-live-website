@@ -414,8 +414,7 @@ modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
 function showStatus(message, type = 'info') {
   if (type === 'error') {
     // Special formatting for prepaid error; fall back to generic if different
-    const isPrepaidMsg = /prepaid/i.test(message);
-    if (isPrepaidMsg) {
+    if (message == 'prepaid_not_allowed') {
       openModal(`
         <p><strong>Prepaid cards aren't supported for free trials.</strong> You have two options to fix this:</p>
         <ul class="modal-list">
@@ -582,7 +581,7 @@ function showStatus(message, type = 'info') {
 const data = await subResponse.json().catch(() => ({}));
 if (!subResponse.ok) {
   if (data?.error === "prepaid_not_allowed") {
-    showStatus("Prepaid cards aren’t supported for free trials.", "error");
+    showStatus("prepaid_not_allowed", "error");
     clientSecret = null; // force new SetupIntent next try
     return;
   }
