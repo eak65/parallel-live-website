@@ -442,7 +442,6 @@
       const effectiveEmail = emailInput.value.trim() || emailParam || "";
 
       // 1) SetupIntent
-      if (!clientSecret) {
         const setupResponse = await fetch(SETUP_INTENT_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -455,7 +454,7 @@
         const setupJson = await setupResponse.json();
         clientSecret = setupJson.clientSecret;
         if (!clientSecret) throw new Error("No client secret received");
-      }
+      
 
       // 2) Confirm setup
       const confirmResult = await stripe.confirmCardSetup(clientSecret, {
