@@ -17,20 +17,15 @@
       color: #0b1324;
       -webkit-font-smoothing: antialiased;
     }
-    .logo-container {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
+    .logo-container { display: flex; justify-content: center; margin-bottom: 16px; }
     .logo-container img { max-width: 180px; height: auto; }
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+
     .card {
       width: 100%; max-width: 520px;
       background: #fff;
       border-radius: 18px;
-      box-shadow:
-        0 32px 90px rgba(17, 24, 39, 0.18),
-        0 4px 10px rgba(17, 24, 39, 0.06);
+      box-shadow: 0 32px 90px rgba(17,24,39,.18), 0 4px 10px rgba(17,24,39,.06);
       padding: 26px 20px 18px;
       text-align: center;
     }
@@ -50,7 +45,7 @@
       width: 100%; height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 14px; outline: none; background: #fff;
     }
     .email-input:focus { border-color: #0369a1; box-shadow: 0 0 0 4px rgba(3,105,161,0.1); }
-    .email-container.error { background: #fef2f2; border-color: #fecaca; animation: shake 0.5s ease-in-out; }
+    .email-container.error { background: #fef2f2; border-color: #fecaca; animation: shake .5s ease-in-out; }
     .email-error { color: #dc2626; font-size: 13px; margin-top: 8px; font-weight: 500; display: none; margin-bottom: 18px; }
     .email-container.error .email-error { display: block; }
 
@@ -59,7 +54,7 @@
       margin: 12px auto 18px; width: 100%; max-width: 360px; text-align: left;
       padding: 16px; border-radius: 12px; background: #f8fafc; border: 2px solid #e2e8f0; transition: all 0.2s ease;
     }
-    .terms-container.error { background: #fef2f2; border-color: #fecaca; animation: shake 0.5s ease-in-out; }
+    .terms-container.error { background: #fef2f2; border-color: #fecaca; animation: shake .5s ease-in-out; }
     @keyframes shake { 0%,20%,40%,60%,80%{transform:translateX(0)} 10%,30%,50%,70%,90%{transform:translateX(-3px)} }
     .checkbox-wrapper { display: flex; align-items: flex-start; gap: 12px; }
     .checkbox-input { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: #0369a1; flex-shrink: 0; margin-top: 2px; }
@@ -72,15 +67,23 @@
     .payment-container { margin: 12px auto 8px; width: 100%; max-width: 360px; height: 56px; position: relative; }
     #payment-request-button { width: 100% !important; height: 56px !important; border-radius: 14px !important; }
     .fallback-button {
-      width: 100%; height: 56px; background: #000; border: none; border-radius: 14px; color: white; font-size: 16px; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.2s ease;
+      width: 100%; height: 56px; background: #000; border: none; border-radius: 14px; color: #fff; font-size: 16px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color .2s ease;
       text-decoration: none; -webkit-tap-highlight-color: transparent;
     }
     .fallback-button:hover { background: #333; }
-    .fallback-button:active { background: #555; transform: scale(0.98); }
-    .fallback-button[disabled] { opacity: 0.5; cursor: not-allowed; }
+    .fallback-button:active { background: #555; transform: scale(.98); }
+    .fallback-button[disabled] { opacity: .5; cursor: not-allowed; }
+
     .apple-logo { width: 20px; height: 24px; fill: white; }
-    .loading { opacity: 0.7; cursor: not-allowed; }
+    .loading { opacity: .7; cursor: not-allowed; }
+
+    .status {
+      margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 14px; text-align: center;
+    }
+    .status.success { background: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; }
+    .status.error   { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .status.info    { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
 
     .hidden { display: none !important; }
 
@@ -92,7 +95,7 @@
     .legal { font-size: 11px; color: #6b7280; margin: 24px auto 0; max-width: 520px; text-align: left; line-height: 1.4; }
     .legal p { margin: 0 0 12px; }
 
-    /* -------- Modal (for showStatus) -------- */
+    /* -------- Single Modal (used by showStatus) -------- */
     .modal-backdrop {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
       display: none; align-items: center; justify-content: center; z-index: 9999;
@@ -100,10 +103,11 @@
     .modal-backdrop.open { display: flex; }
     .modal {
       width: min(92vw, 420px);
+      margin: 0 16px;               /* keeps it off the edges */
       background: #fff;
-      border-radius: 14px;
+      border-radius: 18px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-      padding: 18px 18px 14px;
+      padding: 22px 22px 16px;
       text-align: left;
       outline: none;
     }
@@ -111,102 +115,34 @@
       display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
       font-weight: 800; font-size: 16px; color: #0b1324;
     }
-    .modal-body { font-size: 14px; color: #374151; line-height: 1.5; }
-    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
-    .btn { appearance: none; border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600; cursor: pointer; }
-    .btn-ok { background: #0b1324; color: #fff; }
     .badge {
-      display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
-      border-radius: 999px; font-size: 12px; color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 999px; font-size: 12px; color: #fff;
     }
     .badge.info { background: #0369a1; }
     .badge.success { background: #059669; }
     .badge.error { background: #dc2626; }
-.modal {
-  width: min(78vw, 380px);
-  margin: 0 auto;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-  padding: 24px 26px 18px;
-  text-align: left;
-}
-/* Overlay + modal */
-.modal-overlay {
-  position: fixed; inset: 0;
-  background: rgba(11,19,36,0.55);
-  backdrop-filter: blur(2px);
-  display: none; /* toggled by JS */
-  align-items: center; justify-content: center;
-  z-index: 9999;
-}
 
-.modal {
-  width: min(78vw, 380px);
-  margin: 0 16px;              /* keeps it off the edges */
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-  padding: 22px 22px 16px;
-  text-align: left;
-}
+    .modal-body { font-size: 14px; color: #374151; line-height: 1.5; }
+    .modal-body p + p { margin-top: 10px; }
+    .modal-list { margin: 8px 0 0; padding-left: 16px; }
+    .modal-list li { margin: 6px 0; }
 
-.modal h3 {
-  margin: 0 0 10px;
-  font-size: 17px;
-  font-weight: 800;
-  color: #0b1324;
-}
+    .badge-reco {
+      display: inline-block; margin-left: 6px; padding: 2px 6px;
+      font-size: 11px; font-weight: 700; color: #065f46;
+      background: #d1fae5; border: 1px solid #a7f3d0; border-radius: 10px;
+      vertical-align: baseline;
+    }
 
-.modal p { margin: 0; color: #4c5875; font-size: 14px; line-height: 1.5; }
-.modal p + p { margin-top: 10px; }
-
-.modal-list { margin: 8px 0 0; padding-left: 16px; }
-.modal-list li { margin: 6px 0; }
-
-.badge-reco {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 2px 6px;
-  font-size: 11px;
-  font-weight: 700;
-  color: #065f46;
-  background: #d1fae5;
-  border: 1px solid #a7f3d0;
-  border-radius: 10px;
-  vertical-align: baseline;
-}
-
-.modal-actions {
-  display: flex; gap: 10px;
-  margin-top: 16px;
-}
-
-.btn-outline, .btn-primary {
-  flex: 1;
-  height: 44px;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 15px;
-  cursor: pointer;
-  border: 0;
-}
-
-.btn-outline {
-  background: #f3f4f6;
-  color: #0b1324;
-  border: 1px solid #e5e7eb;
-}
-
-.btn-outline:active { transform: scale(0.99); }
-
-.btn-primary {
-  background: #0b1324;
-  color: #fff;
-}
-
-.btn-primary:active { transform: scale(0.99); }
-
+    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-outline, .btn-primary {
+      flex: 1; height: 44px; border-radius: 12px; font-weight: 700; font-size: 15px;
+      cursor: pointer; border: 0;
+    }
+    .btn-outline { background: #f3f4f6; color: #0b1324; border: 1px solid #e5e7eb; }
+    .btn-outline:active, .btn-primary:active { transform: scale(0.99); }
+    .btn-primary { background: #0b1324; color: #fff; }
   </style>
 </head>
 <body>
@@ -216,9 +152,7 @@
       <img src="logo.png" alt="Company Logo">
     </div>
 
-    <div id="totalDue" class="hidden">
-      <h1 id="totalAmount"></h1>
-    </div>
+    <div id="totalDue" class="hidden"><h1 id="totalAmount"></h1></div>
 
     <div class="email-container" id="emailContainer">
       <label for="emailInput">Email (required)</label>
@@ -285,7 +219,7 @@
   </footer>
 </div>
 
-<!-- Modal container for showStatus -->
+<!-- Single modal used by showStatus -->
 <div id="statusModalBackdrop" class="modal-backdrop" role="presentation" aria-hidden="true">
   <div id="statusModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle" tabindex="-1">
     <div class="modal-header">
@@ -298,39 +232,6 @@
 </div>
 
 <script>
-  // --- Modal nodes (created once) ---
-const overlay = document.createElement('div');
-overlay.className = 'modal-overlay';
-overlay.innerHTML = `
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <h3 id="modalTitle">There was a problem</h3>
-    <div class="modal-body"></div>
-    <div class="modal-actions">
-      <button class="btn-outline" id="modalReturn">Return to app</button>
-      <button class="btn-primary" id="modalConfirm">Switch cards</button>
-    </div>
-  </div>
-`;
-document.body.appendChild(overlay);
-
-const modalBody = overlay.querySelector('.modal-body');
-const modalReturnBtn = overlay.querySelector('#modalReturn');
-const modalConfirmBtn = overlay.querySelector('#modalConfirm');
-
-function openModal(html) {
-  modalBody.innerHTML = html;
-  overlay.style.display = 'flex';
-}
-function closeModal() { overlay.style.display = 'none'; }
-
-// Use a safe universal link root for “Return to app”
-function returnToApp() {
-  // If you have a dedicated cancel/return route, put it here:
-  const fallbackUL = 'https://parallellive.app/'; // root UL typically opens the app via AASA
-  window.open(fallbackUL, '_blank', 'noopener');
-}
-modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
-
 (async () => {
   // ---- Config ----
   const PUBLISHABLE_KEY = "pk_test_51ObAxXDRnH8DK8R5nX6dHGi7xwvx4BiWVzdQRMWqWadtEaLUm08hoGaugND76UTP9OuELxXJvqewWVHFEBB1ck7J00Jc9MvsTG";
@@ -380,23 +281,47 @@ modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
   // Prefill email (if provided via query)
   if (emailParam) emailInput.value = emailParam;
 
-  function openModal() {
-    document.body.style.overflow = "hidden";
-    backdrop.classList.add("open");
+  // ---- Modal helpers (single modal) ----
+  function returnToApp() {
+    const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
+    window.open(fallbackUL, '_blank', 'noopener');
+  }
+
+  function openStatusModal({ title = 'Status', html = '', mode = 'info', actionsBuilder } = {}) {
+    badge.className = 'badge ' + (mode === 'error' ? 'error' : mode === 'success' ? 'success' : 'info');
+    titleEl.textContent = title;
+    bodyEl.innerHTML = html;
+    actions.innerHTML = '';
+    actions.dataset.mode = mode;
+
+    if (typeof actionsBuilder === 'function') {
+      actionsBuilder(actions);
+    } else {
+      const ok = document.createElement('button');
+      ok.className = 'btn-primary';
+      ok.textContent = 'OK';
+      ok.onclick = closeStatusModal;
+      actions.appendChild(ok);
+    }
+
+    document.body.style.overflow = 'hidden';
+    backdrop.classList.add('open');
     modal.focus();
   }
-  function closeModal() {
-    backdrop.classList.remove("open");
-    document.body.style.overflow = "";
-    actions.innerHTML = "";
+
+  function closeStatusModal() {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    actions.innerHTML = '';
   }
-  backdrop.addEventListener("click", (e) => {
-    // click outside does not close on error; only auto status closes itself
-    if (actions.dataset.mode !== "error" && e.target === backdrop) closeModal();
+
+  // click-outside / Esc only closes non-error
+  backdrop.addEventListener('click', (e) => {
+    if (actions.dataset.mode !== 'error' && e.target === backdrop) closeStatusModal();
   });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && backdrop.classList.contains("open")) {
-      if (actions.dataset.mode !== "error") closeModal();
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop.classList.contains('open') && actions.dataset.mode !== 'error') {
+      closeStatusModal();
     }
   });
 
@@ -411,38 +336,68 @@ modalReturnBtn.onclick = () => { closeModal(); returnToApp(); };
     totalDueDiv.classList.remove('hidden');
   }
 
-function showStatus(message, type = 'info') {
-  if (type === 'error') {
-    // Special formatting for prepaid error; fall back to generic if different
-    if (message === 'prepaid_not_allowed') {
-      openModal(`
-        <p><strong>Prepaid cards aren't supported for free trials.</strong> You have two options to fix this:</p>
-        <ul class="modal-list">
-          <li>Switch to a debit or credit card. <span class="badge-reco">Recommended*</span></li>
-          <li>Return to the app and try with App Store Billing.</li>
-        </ul>
-      `);
-      // Primary button = “Switch cards” just closes and lets them try again
-      modalConfirmBtn.textContent = 'Switch cards';
-      modalConfirmBtn.onclick = () => { closeModal(); };
-      modalReturnBtn.textContent = 'Return to app';
+  // ---- showStatus (uses single modal) ----
+  function showStatus(message, type = 'info') {
+    if (type === 'error') {
+      // prepaid special
+      if (message === 'prepaid_not_allowed') {
+        openStatusModal({
+          title: 'Payment Issue',
+          mode: 'error',
+          html: `
+            <p><strong>Prepaid cards aren't supported for free trials.</strong> You have two options to fix this:</p>
+            <ul class="modal-list">
+              <li>Switch to a debit or credit card. <span class="badge-reco">Recommended*</span></li>
+              <li>Return to the app and try with App Store Billing.</li>
+            </ul>
+          `,
+          actionsBuilder: (container) => {
+            const btnReturn = document.createElement('button');
+            btnReturn.className = 'btn-outline';
+            btnReturn.textContent = 'Return to app';
+            btnReturn.onclick = () => { closeStatusModal(); returnToApp(); };
+
+            const btnSwitch = document.createElement('button');
+            btnSwitch.className = 'btn-primary';
+            btnSwitch.textContent = 'Switch cards';
+            btnSwitch.onclick = () => { closeStatusModal(); };
+
+            container.appendChild(btnReturn);
+            container.appendChild(btnSwitch);
+          }
+        });
+        return;
+      }
+
+      // Generic error
+      const safe = (message && String(message).trim()) || 'Something went wrong. Please try again.';
+      openStatusModal({
+        title: 'There was a problem',
+        mode: 'error',
+        html: `<p>${safe}</p>`,
+        actionsBuilder: (container) => {
+          const btnReturn = document.createElement('button');
+          btnReturn.className = 'btn-outline';
+          btnReturn.textContent = 'Return to app';
+          btnReturn.onclick = () => { closeStatusModal(); returnToApp(); };
+
+          const btnOk = document.createElement('button');
+          btnOk.className = 'btn-primary';
+          btnOk.textContent = 'OK';
+          btnOk.onclick = closeStatusModal;
+
+          container.appendChild(btnReturn);
+          container.appendChild(btnOk);
+        }
+      });
       return;
     }
 
-    // Generic error modal
-    openModal(`<p>${message}</p>`);
-    modalConfirmBtn.textContent = 'OK';
-    modalConfirmBtn.onclick = () => { closeModal(); };
-    modalReturnBtn.textContent = 'Return to app';
-    return;
+    // Non-error: inline banner
+    statusDiv.className = `status ${type}`;
+    statusDiv.textContent = message || '';
+    statusDiv.style.display = 'block';
   }
-
-  // Non-error: keep your inline banner
-  statusDiv.className = `status ${type}`;
-  statusDiv.textContent = message;
-  statusDiv.style.display = 'block';
-}
-
 
   // Validation helpers
   const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((v || "").trim());
@@ -494,15 +449,13 @@ function showStatus(message, type = 'info') {
     }
     updateGate();
   });
-
   termsCheckbox.addEventListener('change', () => {
     if (termsCheckbox.checked) termsContainer.classList.remove('error');
     updateGate();
   });
-
   updateGate();
 
-  // Platform sniff
+  // Platform sniff (mainly for Apple Pay button)
   const ua = navigator.userAgent || "";
   const isIOS = /iPad|iPhone|iPod/.test(ua);
   const isSafari = /Safari/.test(ua) && !/Chrome/.test(ua);
@@ -535,27 +488,25 @@ function showStatus(message, type = 'info') {
   // Core payment flow
   const handlePayment = async (paymentMethod, payerEmailFromSheet) => {
     try {
-
       const okEmail = validateEmail();
       const okTerms = validateTermsAcceptance();
       if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
 
       const effectiveEmail = emailInput.value.trim() || emailParam || "";
 
-      // 1) SetupIntent
-        const setupResponse = await fetch(SETUP_INTENT_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
-        });
-        if (!setupResponse.ok) {
-          const errorText = await setupResponse.text();
-          throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
-        }
-        const setupJson = await setupResponse.json();
-        clientSecret = setupJson.clientSecret;
-        if (!clientSecret) throw new Error("No client secret received");
-      
+      // 1) SetupIntent (always fetch fresh before confirm to avoid stale/processing errors)
+      const setupResponse = await fetch(SETUP_INTENT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
+      });
+      if (!setupResponse.ok) {
+        const errorText = await setupResponse.text();
+        throw new Error(`Setup failed: ${setupResponse.status} - ${errorText}`);
+      }
+      const setupJson = await setupResponse.json();
+      clientSecret = setupJson.clientSecret;
+      if (!clientSecret) throw new Error("No client secret received");
 
       // 2) Confirm setup
       const confirmResult = await stripe.confirmCardSetup(clientSecret, {
@@ -577,18 +528,17 @@ function showStatus(message, type = 'info') {
         body: JSON.stringify(payload)
       });
 
-      // Parse once
-const data = await subResponse.json().catch(() => ({}));
-if (!subResponse.ok) {
-  if (data?.error === "prepaid_not_allowed") {
-    showStatus("prepaid_not_allowed", "error");
-    clientSecret = null; // force new SetupIntent next try
-    return;
-  }
-  showStatus(data?.message || `Subscription API error ${subResponse.status}`, "error");
-  clientSecret = null;
-  return;
-}
+      const data = await subResponse.json().catch(() => ({}));
+      if (!subResponse.ok) {
+        if (data?.error === "prepaid_not_allowed") {
+          showStatus("prepaid_not_allowed", "error");
+          clientSecret = null; // force new SetupIntent next try
+          return;
+        }
+        showStatus(data?.message || `Subscription API error ${subResponse.status}`, "error");
+        clientSecret = null;
+        return;
+      }
 
       if (data.error) {
         showStatus(String(data.error), "error");
@@ -611,7 +561,6 @@ if (!subResponse.ok) {
 
     } catch (error) {
       console.error("Payment error:", error);
-      // showStatus already called above for most paths; ensure an error modal if not yet shown
       if (!backdrop.classList.contains("open")) showStatus(`Error: ${error.message}`, "error");
       throw error;
     }
