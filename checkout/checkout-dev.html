@@ -143,6 +143,28 @@
     .btn-outline { background: #f3f4f6; color: #0b1324; border: 1px solid #e5e7eb; }
     .btn-outline:active, .btn-primary:active { transform: scale(0.99); }
     .btn-primary { background: #0b1324; color: #fff; }
+    /* Keep comfy side gutters + safe-area support */
+.modal {
+  box-sizing: border-box;
+  max-width: 420px;
+  /* 100vw minus left/right gutters and safe-area */
+  width: calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right));
+  /* fallbacks/gutters even when safe-area is 0 */
+  margin-left: max(16px, env(safe-area-inset-left));
+  margin-right: max(16px, env(safe-area-inset-right));
+
+  /* prevent vertical overflow on short screens */
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: add padding to the backdrop so the modal never touches edges even when centered */
+.modal-backdrop {
+  padding-top: max(16px, env(safe-area-inset-top));
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
   </style>
 </head>
 <body>
