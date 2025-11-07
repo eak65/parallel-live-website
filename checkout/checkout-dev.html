@@ -579,16 +579,17 @@ function showStatus(message, type = 'info') {
       });
 
       // Parse once
-      const data = await subResponse.json().catch(() => ({}));
-
-      if (!subResponse.ok) {
-        if (data?.error === "prepaid_not_allowed") {
-          showStatus("Prepaid cards aren’t supported. Try a debit or credit card.", "error");
-          throw new Error("prepaid_not_allowed");
-        }
-        showStatus(data?.message || `Subscription API error ${subResponse.status}`, "error");
-        throw new Error(data?.message || `Subscription API error ${subResponse.status}`);
-      }
+const data = await subResponse.json().catch(() => ({}));
+if (!subResponse.ok) {
+  if (data?.error === "prepaid_not_allowed") {
+    showStatus("Prepaid cards aren’t supported for free trials.", "error");
+    clientSecret = null; // force new SetupIntent next try
+    return;
+  }
+  showStatus(data?.message || `Subscription API error ${subResponse.status}`, "error");
+  clientSecret = null;
+  return;
+}
 
       if (data.error) {
         showStatus(String(data.error), "error");
