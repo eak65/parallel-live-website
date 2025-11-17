@@ -49,6 +49,21 @@
     .email-error { color: #dc2626; font-size: 13px; margin-top: 8px; font-weight: 500; display: none; margin-bottom: 18px; }
     .email-container.error .email-error { display: block; }
 
+    /* Birthday field */
+    .birthday-container {
+      margin: 10px auto 12px; width: 100%; max-width: 360px; text-align: left;
+      padding: 14px 16px 16px; border-radius: 12px; background: #f8fafc; border: 2px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+    .birthday-container label { display: block; font-size: 13px; color: #374151; margin-bottom: 8px; font-weight: 600; }
+    .birthday-input {
+      width: 100%; height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1; padding: 0 12px; font-size: 14px; outline: none; background: #fff;
+    }
+    .birthday-input:focus { border-color: #0369a1; box-shadow: 0 0 0 4px rgba(3,105,161,0.1); }
+    .birthday-container.error { background: #fef2f2; border-color: #fecaca; animation: shake .5s ease-in-out; }
+    .birthday-error { color: #dc2626; font-size: 13px; margin-top: 8px; font-weight: 500; display: none; margin-bottom: 18px; }
+    .birthday-container.error .birthday-error { display: block; }
+
     /* Terms checkbox */
     .terms-container {
       margin: 12px auto 18px; width: 100%; max-width: 360px; text-align: left;
@@ -182,6 +197,12 @@
       <div class="email-error" id="emailError">Please enter a valid email address.</div>
     </div>
 
+    <div class="birthday-container" id="birthdayContainer">
+      <label for="birthdayInput">Birthday (required)</label>
+      <input type="date" id="birthdayInput" class="birthday-input" autocomplete="bday" />
+      <div class="birthday-error" id="birthdayError">Please enter your birthday.</div>
+    </div>
+
     <div class="terms-container" id="termsContainer">
       <div class="checkbox-wrapper">
         <input type="checkbox" id="termsCheckbox" class="checkbox-input">
@@ -293,6 +314,8 @@
   const paymentButtonOverlay = document.getElementById("payment-button-overlay");
   const emailContainer = document.getElementById("emailContainer");
   const emailInput = document.getElementById("emailInput");
+  const birthdayContainer = document.getElementById("birthdayContainer");
+  const birthdayInput = document.getElementById("birthdayInput");
 
   // Modal elements
   const backdrop = document.getElementById("statusModalBackdrop");
@@ -447,6 +470,22 @@
     }
     return ok;
   };
+  const validateBirthday = () => {
+    const val = birthdayInput.value;
+    const ok = val && val.trim() !== '';
+    if (!ok) {
+      birthdayContainer.classList.add('error');
+      birthdayInput.setAttribute('aria-invalid', 'true');
+      birthdayInput.focus({ preventScroll: true });
+      birthdayContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      birthdayContainer.classList.remove('error');
+      birthdayInput.removeAttribute('aria-invalid');
+      const err = document.getElementById("birthdayError");
+      if (err) err.style.display = 'none';
+    }
+    return ok;
+  };
   const validateTermsAcceptance = () => {
     const checked = termsCheckbox.checked;
     if (!checked) {
@@ -458,8 +497,9 @@
   };
 
   // Gate logic
+  const hasValidBirthday = () => birthdayInput.value && birthdayInput.value.trim() !== '';
   const meetsRequirements = () =>
-    isValidEmail(emailInput.value.trim()) && termsCheckbox.checked;
+    isValidEmail(emailInput.value.trim()) && hasValidBirthday() && termsCheckbox.checked;
 
   const updateGate = () => {
     if (paymentButtonOverlay) {
@@ -475,6 +515,14 @@
     if (ctn.classList.contains('error') && isValidEmail(emailInput.value)) {
       ctn.classList.remove('error');
       emailInput.removeAttribute('aria-invalid');
+    }
+    updateGate();
+  });
+  birthdayInput.addEventListener('change', () => {
+    const ctn = document.getElementById("birthdayContainer");
+    if (ctn.classList.contains('error') && birthdayInput.value) {
+      ctn.classList.remove('error');
+      birthdayInput.removeAttribute('aria-invalid');
     }
     updateGate();
   });
@@ -504,7 +552,7 @@
   function renderSuccess(universalLink, messageText) {
     if (totalDueDiv) totalDueDiv.style.display = 'none';
     const hide = (sel) => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
-    hide('.payment-container'); hide('.terms-container'); hide('.email-container');
+    hide('.payment-container'); hide('.terms-container'); hide('.email-container'); hide('.birthday-container');
     if (whyBlock) whyBlock.style.display = 'none';
     const supportBlock = document.getElementById("supportBlock"); if (supportBlock) supportBlock.style.display = 'none';
 
@@ -518,10 +566,12 @@
   const handlePayment = async (paymentMethod, payerEmailFromSheet) => {
     try {
       const okEmail = validateEmail();
+      const okBirthday = validateBirthday();
       const okTerms = validateTermsAcceptance();
-      if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
+      if (!okEmail || !okBirthday || !okTerms) throw new Error("Please complete required fields.");
 
       const effectiveEmail = emailInput.value.trim() || emailParam || "";
+      const birthday = birthdayInput.value || "";
 
       // 1) SetupIntent (always fetch fresh before confirm to avoid stale/processing errors)
       const setupResponse = await fetch(SETUP_INTENT_URL, {
@@ -548,7 +598,8 @@
       const payload = {
         paymentMethodId, userId,
         applePayEmail: payerEmailFromSheet, email: effectiveEmail,
-        sub_type, isDiscounted, lookup_key: product_id, age, gender, offeringId
+        sub_type, isDiscounted, lookup_key: product_id, age, gender, offeringId,
+        metadata: { birthday: birthday }
       };
 
       const subResponse = await fetch(CREATE_SUB_URL, {
@@ -657,8 +708,9 @@
         e.stopPropagation();
 
         const okEmail = validateEmail();
+        const okBirthday = validateBirthday();
         const okTerms = validateTermsAcceptance();
-        if (!(okEmail && okTerms)) return;
+        if (!(okEmail && okBirthday && okTerms)) return;
 
         paymentButtonOverlay.style.display = 'none';
         const applePayButton =
@@ -674,8 +726,9 @@
 
       fb.onclick = () => {
         const okEmail = validateEmail();
+        const okBirthday = validateBirthday();
         const okTerms = validateTermsAcceptance();
-        if (!okEmail || !okTerms) return;
+        if (!okEmail || !okBirthday || !okTerms) return;
         showStatus("Please use a device with Apple Pay support", "error");
       };
     }
