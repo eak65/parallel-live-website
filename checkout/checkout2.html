@@ -310,6 +310,10 @@
     const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
     window.open('https://parallellive.app/checkout_redirect/success', '_blank', 'noopener'); 
   }
+    function returnToAppShowPay() {
+    const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
+    window.open('https://parallellive.app/checkout_redirect/success?showpay=true', '_blank', 'noopener'); 
+  }
 
   function openStatusModal({ title = 'Status', html = '', mode = 'info', actionsBuilder } = {}) {
     badge.className = 'badge ' + (mode === 'error' ? 'error' : mode === 'success' ? 'success' : 'info');
@@ -379,16 +383,16 @@
           actionsBuilder: (container) => {
             const btnReturn = document.createElement('button');
             btnReturn.className = 'btn-outline';
-            btnReturn.textContent = 'Return to app';
+            btnReturn.textContent = 'Try Apple Store Billing';
             btnReturn.onclick = (e) => { 
                   e.preventDefault();
                   closeStatusModal();
-                  returnToApp(); 
+                  returnToAppShowPay();
              };
 
             const btnSwitch = document.createElement('button');
             btnSwitch.className = 'btn-primary';
-            btnSwitch.textContent = 'Switch cards';
+            btnSwitch.textContent = 'Switch to credit or debit card';
             btnSwitch.onclick = () => { closeStatusModal(); };
 
             container.appendChild(btnReturn);
