@@ -275,6 +275,7 @@
   const age        = url.searchParams.get("age") || "";
   const gender     = url.searchParams.get("gender") || "";
   const offeringId = url.searchParams.get("offeringId") || "";
+  const skipEmailAndTerms = offeringId.includes("nocheckoutemail");
 
   // Elements
   const paymentRequestButtonDiv = document.getElementById("payment-request-button");
@@ -303,10 +304,20 @@
   // Prefill email (if provided via query)
   if (emailParam) emailInput.value = emailParam;
 
+  // Hide email and terms when offeringId contains "nocheckoutemail"
+  if (skipEmailAndTerms) {
+    emailContainer.classList.add('hidden');
+    termsContainer.classList.add('hidden');
+  }
+
   // ---- Modal helpers (single modal) ----
   function returnToApp() {
     const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
-    window.open('https://parallellive.app/checkout_redirect/success', '_blank', 'noopener'); 
+    window.open('https://parallellive.app/checkout_redirect/success', '_blank', 'noopener');
+  }
+    function returnToAppShowPay() {
+    const fallbackUL = 'https://parallellive.app/'; // root UL should open the app via AASA
+    window.open('https://parallellive.app/checkout_redirect/success?showpay=true', '_blank', 'noopener');
   }
 
   function openStatusModal({ title = 'Status', html = '', mode = 'info', actionsBuilder } = {}) {
@@ -377,16 +388,16 @@
           actionsBuilder: (container) => {
             const btnReturn = document.createElement('button');
             btnReturn.className = 'btn-outline';
-            btnReturn.textContent = 'Return to app';
-            btnReturn.onclick = (e) => { 
+            btnReturn.textContent = 'Try Apple Store Billing';
+            btnReturn.onclick = (e) => {
                   e.preventDefault();
                   closeStatusModal();
-                  returnToApp(); 
+                  returnToAppShowPay();
              };
 
             const btnSwitch = document.createElement('button');
             btnSwitch.className = 'btn-primary';
-            btnSwitch.textContent = 'Switch cards';
+            btnSwitch.textContent = 'Switch to credit or debit card';
             btnSwitch.onclick = () => { closeStatusModal(); };
 
             container.appendChild(btnReturn);
@@ -406,7 +417,7 @@
           const btnReturn = document.createElement('button');
           btnReturn.className = 'btn-outline';
           btnReturn.textContent = 'Return to app';
-          btnReturn.onclick = () => { closeStatusModal(); returnToApp(); };
+          btnReturn.onclick = () => { closeStatusModal(); returnToAppShowPay(); };
 
           const btnOk = document.createElement('button');
           btnOk.className = 'btn-primary';
@@ -457,7 +468,7 @@
 
   // Gate logic
   const meetsRequirements = () =>
-    isValidEmail(emailInput.value.trim()) && termsCheckbox.checked;
+    skipEmailAndTerms || (isValidEmail(emailInput.value.trim()) && termsCheckbox.checked);
 
   const updateGate = () => {
     if (paymentButtonOverlay) {
@@ -515,11 +526,11 @@
   // Core payment flow
   const handlePayment = async (paymentMethod, payerEmailFromSheet) => {
     try {
-      const okEmail = validateEmail();
-      const okTerms = validateTermsAcceptance();
+      const okEmail = skipEmailAndTerms || validateEmail();
+      const okTerms = skipEmailAndTerms || validateTermsAcceptance();
       if (!okEmail || !okTerms) throw new Error("Please complete required fields.");
 
-      const effectiveEmail = emailInput.value.trim() || emailParam || "";
+      const effectiveEmail = skipEmailAndTerms ? (emailParam || "") : (emailInput.value.trim() || emailParam || "");
 
       // 1) SetupIntent (always fetch fresh before confirm to avoid stale/processing errors)
       const setupResponse = await fetch(SETUP_INTENT_URL, {
@@ -654,8 +665,8 @@
         e.preventDefault();
         e.stopPropagation();
 
-        const okEmail = validateEmail();
-        const okTerms = validateTermsAcceptance();
+        const okEmail = skipEmailAndTerms || validateEmail();
+        const okTerms = skipEmailAndTerms || validateTermsAcceptance();
         if (!(okEmail && okTerms)) return;
 
         paymentButtonOverlay.style.display = 'none';
@@ -671,8 +682,8 @@
       updateGate();
 
       fb.onclick = () => {
-        const okEmail = validateEmail();
-        const okTerms = validateTermsAcceptance();
+        const okEmail = skipEmailAndTerms || validateEmail();
+        const okTerms = skipEmailAndTerms || validateTermsAcceptance();
         if (!okEmail || !okTerms) return;
         showStatus("Please use a device with Apple Pay support", "error");
       };
