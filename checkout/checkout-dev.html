@@ -20,6 +20,7 @@
     .logo-container { display: flex; justify-content: center; margin-bottom: 16px; }
     .logo-container img { max-width: 180px; height: auto; }
     .wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+    .wrap.success-top { align-content: start; padding-top: 10px; }
 
     .card {
       width: 100%; max-width: 520px;
@@ -536,6 +537,7 @@
     successView.classList.remove('hidden');
 
     if (source === 'in-app') {
+      document.querySelector('.wrap').classList.add('success-top');
       successMsg.textContent = messageText || 'Success!';
       hide('.legal');
       // Hide return button, show close-browser hint above the logo
