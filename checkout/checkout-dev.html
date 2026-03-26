@@ -92,6 +92,20 @@
     }
     .success-message { font-size: 18px; font-weight: 600; color: #0b1324; text-align: center; line-height: 1.5; padding: 20px; }
 
+    /* In-app close instruction */
+    .inapp-close-hint {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 16px; font-weight: 600; color: #0b1324; margin-top: 8px;
+    }
+    .inapp-close-hint .arrow {
+      font-size: 28px; line-height: 1;
+      animation: point-top-left 1.2s ease-in-out infinite;
+    }
+    @keyframes point-top-left {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-6px, -6px); }
+    }
+
     .legal { font-size: 11px; color: #6b7280; margin: 24px auto 0; max-width: 520px; text-align: left; line-height: 1.4; }
     .legal p { margin: 0 0 12px; }
 
@@ -275,6 +289,7 @@
   const age        = url.searchParams.get("age") || "";
   const gender     = url.searchParams.get("gender") || "";
   const offeringId = url.searchParams.get("offeringId") || "";
+  const source     = url.searchParams.get("source") || "external";
   const skipEmailAndTerms = offeringId.includes("nocheckoutemail");
 
   // Elements
@@ -518,9 +533,24 @@
     const supportBlock = document.getElementById("supportBlock"); if (supportBlock) supportBlock.style.display = 'none';
 
     successView.classList.remove('hidden');
-    successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
-    returnBtn.classList.remove('hidden');
-    returnBtn.onclick = (e) => { e.preventDefault(); window.open(universalLink, '_blank', 'noopener'); };
+
+    if (source === 'in-app') {
+      successMsg.textContent = messageText || 'Success!';
+      // Hide return button, show close-browser hint instead
+      returnBtn.classList.add('hidden');
+      let hint = document.getElementById('inappCloseHint');
+      if (!hint) {
+        hint = document.createElement('div');
+        hint.id = 'inappCloseHint';
+        hint.className = 'inapp-close-hint';
+        hint.innerHTML = '<span class="arrow">&#x2196;</span> Close the browser to return to the app';
+        successMsg.insertAdjacentElement('afterend', hint);
+      }
+    } else {
+      successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
+      returnBtn.classList.remove('hidden');
+      returnBtn.onclick = (e) => { e.preventDefault(); window.open(universalLink, '_blank', 'noopener'); };
+    }
   }
 
   // Core payment flow
