@@ -88,14 +88,15 @@
     .hidden { display: none !important; }
 
     .success-view {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; position: relative; gap: 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; gap: 8px;
     }
-    .success-message { font-size: 18px; font-weight: 600; color: #0b1324; text-align: center; line-height: 1.5; padding: 20px; }
+    .success-message { font-size: 18px; font-weight: 600; color: #0b1324; text-align: center; line-height: 1.5; padding: 8px 20px; }
 
-    /* In-app close instruction */
+    /* In-app close instruction — pinned above the logo */
     .inapp-close-hint {
       display: flex; align-items: center; gap: 10px;
-      font-size: 16px; font-weight: 600; color: #0b1324; margin-top: 8px;
+      font-size: 16px; font-weight: 600; color: #0b1324;
+      margin: 0;
     }
     .inapp-close-hint .arrow {
       font-size: 28px; line-height: 1;
@@ -538,7 +539,8 @@
 
     if (source === 'in-app') {
       successMsg.textContent = messageText || 'Success!';
-      // Hide return button, show close-browser hint instead
+      hide('.legal');
+      // Hide return button, show close-browser hint above the logo
       returnBtn.classList.add('hidden');
       let hint = document.getElementById('inappCloseHint');
       if (!hint) {
@@ -546,7 +548,8 @@
         hint.id = 'inappCloseHint';
         hint.className = 'inapp-close-hint';
         hint.innerHTML = '<span class="arrow">&#x2196;</span> Close the browser to return to the app';
-        successMsg.insertAdjacentElement('afterend', hint);
+        const logoContainer = document.querySelector('.logo-container');
+        logoContainer.parentNode.insertBefore(hint, logoContainer);
       }
     } else {
       successMsg.textContent = messageText || 'Success! You can now return to the app. Tap the button below.';
