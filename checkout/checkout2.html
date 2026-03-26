@@ -531,7 +531,7 @@
   function renderSuccess(universalLink, messageText) {
     if (totalDueDiv) totalDueDiv.style.display = 'none';
     const hide = (sel) => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
-    hide('.payment-container'); hide('.terms-container'); hide('.email-container'); hide('.legal');
+    hide('.payment-container'); hide('.terms-container'); hide('.email-container');
     if (whyBlock) whyBlock.style.display = 'none';
     const supportBlock = document.getElementById("supportBlock"); if (supportBlock) supportBlock.style.display = 'none';
 
@@ -539,6 +539,7 @@
 
     if (source === 'in-app') {
       successMsg.textContent = messageText || 'Success!';
+      hide('.legal');
       // Hide return button, show close-browser hint above the logo
       returnBtn.classList.add('hidden');
       let hint = document.getElementById('inappCloseHint');
